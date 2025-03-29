@@ -6,7 +6,7 @@ import {
   ErrorCode,
 } from "@suiet/wallet-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { Buffer } from "buffer";
 
@@ -32,6 +32,17 @@ function App() {
     if (!wallet.chain) return "";
     return sampleNft.get(wallet.chain.id) ?? "";
   }, [wallet]);
+
+  useEffect(() => {
+    console.log("useEffec called");
+    if (wallet.connected) {
+      console.log("wallet connected :",wallet);
+        
+      
+    }
+
+  }, [wallet]);
+
 
   function uint8arrayToHex(value) {
     if (!value) return "";
@@ -149,18 +160,6 @@ function App() {
 
   return (
     <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel={"noreferrer"}>
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a
-          href="https://github.com/suiet/wallet-kit"
-          target="_blank"
-          rel={"noreferrer"}
-        >
-          <img src={"/suiet-logo.svg"} className="logo" alt="Suiet logo" />
-        </a>
-      </div>
       <h1>Vite + Suiet Kit</h1>
       <div className="card">
         <ConnectButton
@@ -175,12 +174,10 @@ function App() {
           }}
         />
 
-        {
-        !wallet.connected ? 
-        (
+
+        {!wallet.connected ? (
           <p>Connect DApp with Suiet wallet from now!</p>
-        ) :
-         (
+        ) : (
           <div>
             <div>
               <p>current wallet: {wallet.adapter?.name}</p>
@@ -217,9 +214,14 @@ function App() {
       </div>
       <p className="read-the-docs">
         Click on the Vite and Suiet logos to learn more
+
+        yeh wallet
       </p>
+
+
     </div>
   );
 }
 
 export default App;
+

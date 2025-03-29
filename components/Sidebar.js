@@ -30,10 +30,10 @@ export default function Sidebar() {
   const links = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
-    { href: "/explore", icon: Compass, label: "Explore" },
-    { href: "/post", icon: PlusSquare, label: "Create Post" },
+    { href: "/games", icon: Compass, label: "Games" },
+    { href: "/buyTokens", icon: PlusSquare, label: "Buy Tokens" },
     { href: "/notifications", icon: Heart, label: "Notifications" },
-    { href: "/messages", icon: MessageCircle, label: "Messages" },
+    { href: "/rewards", icon: MessageCircle, label: "Rewards" },
     { href: "/profile", icon: User, label: "Profile" },
   ]
 

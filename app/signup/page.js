@@ -29,7 +29,233 @@ import FloatingIcons from "@/components/floating-icons";
 
 import useUsers from "@/hooks/user.zustand";
 
+import Head from "next/head";
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
+import {
+  AllDefaultWallets,
+  defineStashedWallet,
+  WalletAdapter,
+  WalletProvider,
+} from "@suiet/wallet-kit";
+import '@suiet/wallet-kit/style.css';
+
+
+import {
+  ConnectButton,
+  useAccountBalance,
+  useWallet,
+  SuiChainId,
+  ErrorCode,
+} from "@suiet/wallet-kit";
+import { Transaction } from "@mysten/sui/transactions";
+import { useEffect, useMemo } from "react";
+import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
+import { Buffer } from "buffer";
+
+const sampleNft = new Map([
+  [
+    "sui:devnet",
+    "0xe146dbd6d33d7227700328a9421c58ed34546f998acdc42a1d05b4818b49faa2::nft::mint",
+  ],
+  [
+    "sui:testnet",
+    "0x5ea6aafe995ce6506f07335a40942024106a57f6311cb341239abf2c3ac7b82f::nft::mint",
+  ],
+  [
+    "sui:mainnet",
+    "0x5b45da03d42b064f5e051741b6fed3b29eb817c7923b83b92f37a1d2abf4fbab::nft::mint",
+  ],
+]);
+
+function App() {
+  const wallet = useWallet();
+  //const { balance } = useAccountBalance();
+  const nftContractAddr = useMemo(() => {
+    if (!wallet.chain) return "";
+    return sampleNft.get(wallet.chain.id) ?? "";
+  }, [wallet]);
+
+  useEffect(() => {
+    console.log("useEffec called");
+    if (wallet.connected) {
+      console.log("wallet connected :",wallet);
+    }
+
+  }, [wallet]);
+
+
+  function uint8arrayToHex(value) {
+    if (!value) return "";
+    // @ts-ignore
+    return value.toString("hex");
+  }
+
+  async function handleExecuteMoveCall(target) {
+    if (!target) return;
+
+    try {
+      const tx = new Transaction();
+      tx.moveCall({
+        target: target,
+        arguments: [
+          tx.pure.string("Suiet NFT"),
+          tx.pure.string("Suiet Sample NFT"),
+          tx.pure.string(
+            "https://xc6fbqjny4wfkgukliockypoutzhcqwjmlw2gigombpp2ynufaxa.arweave.net/uLxQwS3HLFUailocJWHupPJxQsli7aMgzmBe_WG0KC4"
+          ),
+        ],
+      });
+      const resData = await wallet.signAndExecuteTransaction({
+        transaction: tx,
+      });
+      console.log("executeMoveCall success", resData);
+      alert("executeMoveCall succeeded (see response in the console)");
+    } catch (e) {
+      console.error("executeMoveCall failed", e);
+      alert("executeMoveCall failed (see response in the console)");
+    }
+  }
+
+  async function handleSignMsg() {
+    if (!wallet.account) return;
+    try {
+      const msg = "Hello world!";
+      const msgBytes = new TextEncoder().encode(msg);
+      const result = await wallet.signPersonalMessage({
+        message: msgBytes,
+      });
+      const verifyResult = await wallet.verifySignedMessage(
+        result,
+        wallet.account.publicKey
+      );
+      console.log("verify signedMessage", verifyResult);
+      if (!verifyResult) {
+        alert(`signMessage succeed, but verify signedMessage failed`);
+      } else {
+        alert(`signMessage succeed, and verify signedMessage succeed!`);
+      }
+    } catch (e) {
+      console.error("signMessage failed", e);
+      alert("signMessage failed (see response in the console)");
+    }
+  }
+
+  const handleSignTxnAndVerifySignature = async (contractAddress) => {
+    const txn = new Transaction();
+    txn.moveCall({
+      target: contractAddress ,
+      arguments: [
+        txn.pure.string("Suiet NFT"),
+        txn.pure.string("Suiet Sample NFT"),
+        txn.pure.string(
+          "https://xc6fbqjny4wfkgukliockypoutzhcqwjmlw2gigombpp2ynufaxa.arweave.net/uLxQwS3HLFUailocJWHupPJxQsli7aMgzmBe_WG0KC4"
+        ),
+      ],
+    });
+    txn.setSender(wallet.account?.address );
+
+    try {
+      const signedTxn = await wallet.signTransaction({
+        transaction: txn,
+      });
+
+      console.log(`Sign and verify txn:`);
+      console.log("--wallet: ", wallet.adapter?.name);
+      console.log("--account: ", wallet.account?.address);
+      const publicKey = wallet.account?.publicKey;
+      if (!publicKey) {
+        console.error("no public key provided by wallet");
+        return;
+      }
+      console.log("-- publicKey: ", publicKey);
+      const pubKey = new Ed25519PublicKey(publicKey);
+      console.log("-- signed txnBytes: ", signedTxn.bytes);
+      console.log("-- signed signature: ", signedTxn.signature);
+      const txnBytes = new Uint8Array(Buffer.from(signedTxn.bytes, "base64"));
+      const isValid = await pubKey.verifyTransaction(txnBytes, signedTxn.signature);
+      console.log("-- use pubKey to verify transaction: ", isValid);
+      if (!isValid) {
+        alert(`signTransaction succeed, but verify transaction failed`);
+      } else {
+        alert(`signTransaction succeed, and verify transaction succeed!`);
+      }
+    } catch (e) {
+      console.error("signTransaction failed", e);
+      alert("signTransaction failed (see response in the console)");
+    }
+  };
+
+  const chainName = (chainId) => {
+    switch (chainId) {
+      case SuiChainId.MAIN_NET:
+        return "Mainnet";
+      case SuiChainId.TEST_NET:
+        return "Testnet";
+      case SuiChainId.DEV_NET:
+        return "Devnet";
+      default:
+        return "Unknown";
+    }
+  };
+
+  return (
+    <div className="App">
+      <h1>Vite + Suiet Kit</h1>
+      <div className="card">
+        <ConnectButton
+          onConnectError={(error) => {
+            if (error.code === ErrorCode.WALLET__CONNECT_ERROR__USER_REJECTED) {
+              console.warn(
+                "user rejected the connection to " + error.details?.wallet
+              );
+            } else {
+              console.warn("unknown connect error: ", error);
+            }
+          }}
+        />
+
+
+        {!wallet.connected ? (
+          <p>Connect DApp with Suiet wallet from now!</p>
+        ) : (
+          <div>
+            <div>
+              <p>current wallet: {wallet.adapter?.name}</p>
+              <p>
+                wallet status:{" "}
+                {wallet.connecting
+                  ? "connecting"
+                  : wallet.connected
+                  ? "connected"
+                  : "disconnected"}
+              </p>
+              <p>wallet address: {wallet.account?.address}</p>
+              <p>current network: {wallet.chain?.name}</p>
+              <p>wallet balance: {String(balance)} SUI</p>
+              <p>
+                wallet publicKey: {uint8arrayToHex(wallet.account?.publicKey)}
+              </p>
+            </div>
+            
+          </div>
+        )}
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and Suiet logos to learn more
+        yeh wallet
+      </p>
+
+
+    </div>
+  );
+}
+
+
 export default function SignupPage() {
+
+  const wallet = useWallet();
+  //const { balance } = useAccountBalance();
   const router = useRouter();
   const [formData, setFormData] = useState({
     username: "",
@@ -163,6 +389,7 @@ export default function SignupPage() {
     try {
       // Hash the password
       const hashedPassword = await bcrypt.hash(formData.password, 10);
+      console.log("Wallet :",wallet);
 
       // Prepare data for API call
       const userData = {
@@ -181,47 +408,71 @@ export default function SignupPage() {
       // Simulate API call
       console.log("Sending data to API:", userData);
 
-      fetch("/api/createNode", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          label: ["USER"],
-          properties: userData,
-        }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json(); // Parse JSON correctly
-        })
-        .then((data) => console.log(data))
-        .catch((error) => console.error("Error:", error));
+      // fetch("/api/createNode", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     label: ["USER"],
+      //     properties: userData,
+      //   }),
+      // })
+      //   .then((response) => {
+      //     if (!response.ok) {
+      //       throw new Error(`HTTP error! Status: ${response.status}`);
+      //     }
+      //     return response.json(); // Parse JSON correctly
+      //   })
+      //   .then((data) => console.log(data))
+      //   .catch((error) => console.error("Error:", error));
 
       // Simulate successful response
 
-      setTimeout(() => {
-        setIsSuccess(true);
-        setTimeout(() => {
-          //setUser(userData);
-          setUser({
-            ...userData,
-            followers: 1,
-            following: 0,
-            posts: 0,
-          });
+      // setTimeout(() => {
+      //   setIsSuccess(true);
+      //   setTimeout(() => {
+      //     //setUser(userData);
+      //     setUser({
+      //       ...userData,
+      //       followers: 1,
+      //       following: 0,
+      //       posts: 0,
+      //     });
 
-          router.push("/profile");
-        }, 2000);
-      }, 1500);
+      //     router.push("/profile");
+      //   }, 2000);
+      // }, 1500);
     } catch (error) {
       console.error("Error during signup:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+
+  const nftContractAddr = useMemo(() => {
+    if (!wallet.chain) return "";
+    return sampleNft.get(wallet.chain.id) ?? "";
+  }, [wallet]);
+
+  useEffect(() => {
+    console.log("useEffec called");
+    if (wallet.connected) {
+      console.log("wallet connected :",wallet);
+    }
+
+  }, [wallet]);
+
+
+  function uint8arrayToHex(value) {
+    if (!value) return "";
+    // @ts-ignore
+    return value.toString("hex");
+  }
+
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center ">
@@ -401,7 +652,7 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <Label htmlFor="bio" className="flex items-center gap-2">
                     <div size={16} />
-                    bio Number
+                    bio
                   </Label>
                   <div className="relative">
                     <Input
@@ -436,7 +687,7 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <Label htmlFor="date" className="flex items-center gap-2">
                     <div size={16} />
-                    date Number
+                    date 
                   </Label>
                   <div className="relative">
                     <Input
@@ -547,7 +798,75 @@ export default function SignupPage() {
                 </div>
               </motion.div>
 
-              <motion.div
+             
+
+              <WalletProvider
+                  defaultWallets={[
+                    ...AllDefaultWallets,
+                    defineStashedWallet({
+                      appName: "Suiet Kit Playground",
+                    }),
+                  ]}
+                >
+                  <div className={styles.container}>
+                    <Head>
+                      <title>Create Next App</title>
+                      <meta name="description" content="Generated by create next app" />
+                      <link rel="icon" href="/favicon.ico" />
+                    </Head>
+                        <div className="App">
+                            <h1>Vite + Suiet Kit</h1>
+                            <div className="card">
+                              <ConnectButton
+                                onConnectError={(error) => {
+                                  if (error.code === ErrorCode.WALLET__CONNECT_ERROR__USER_REJECTED) {
+                                    console.warn(
+                                      "user rejected the connection to " + error.details?.wallet
+                                    );
+                                  } else {
+                                    console.warn("unknown connect error: ", error);
+                                  }
+                                }}
+                              />
+
+
+                              {!wallet.connected ? (
+                                <p>Connect DApp with Suiet wallet from now!</p>
+                              ) : (
+                                <div>
+                                  <div>
+                                    <p>current wallet: {wallet.adapter?.name}</p>
+                                    <p>
+                                      wallet status:{" "}
+                                      {wallet.connecting
+                                        ? "connecting"
+                                        : wallet.connected
+                                        ? "connected"
+                                        : "disconnected"}
+                                    </p>
+                                    <p>wallet address: {wallet.account?.address}</p>
+                                    <p>current network: {wallet.chain?.name}</p>
+                                    {/* <p>wallet balance: {String(balance)} SUI</p> */}
+                                    <p>
+                                      wallet publicKey: {uint8arrayToHex(wallet.account?.publicKey)}
+                                    </p>
+                                  </div>
+                                  
+                                </div>
+                              )}
+                            </div>
+                            <p className="read-the-docs">
+                              Click on the Vite and Suiet logos to learn more
+                              yeh wallet
+                            </p>
+
+
+                          </div>
+                  </div>
+                </WalletProvider>
+
+
+                <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.9, duration: 0.5 }}
@@ -590,6 +909,7 @@ export default function SignupPage() {
                   )}
                 </Button>
               </motion.div>
+
             </form>
           </CardContent>
 
@@ -612,6 +932,13 @@ export default function SignupPage() {
           </CardFooter>
         </Card>
       </motion.div>
+
+
+
     </div>
   );
 }
+
+
+
+

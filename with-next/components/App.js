@@ -6,7 +6,7 @@ import {
   ErrorCode,
 } from "@suiet/wallet-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
 import { Buffer } from "buffer";
 
@@ -32,6 +32,35 @@ function App() {
     if (!wallet.chain) return "";
     return sampleNft.get(wallet.chain.id) ?? "";
   }, [wallet]);
+
+  useEffect(() => {
+    console.log("useEffec called");
+    if (wallet.connected) {
+      wallet.getAccount().then((account) => {
+        console.log("account: ", account);
+        console.log("account address: ", account.address);
+        console.log("account publicKey: ", account.publicKey);
+        console.log("account chain: ", account.chain);
+        console.log("account balance: ", account.balance);
+        console.log("account connected: ", account.connected);
+        console.log("account provider: ", account.provider);
+        console.log("account transaction history: ", account.transactionHistory);
+        });
+      wallet.getChain().then((chain) => {
+        console.log("chain: ", chain);
+        console.log("chain id: ", chain.id);
+        console.log("chain name: ", chain.name);
+        console.log("chain network: ", chain.network);
+        console.log("chain rpc: ", chain.rpc);
+        console.log("chain explorer: ", chain.explorer);
+        console.log("chain connected: ", chain.connected);
+        console.log("chain provider: ", chain.provider);
+        console.log("chain transaction history: ", chain.transactionHistory);
+      });
+    }
+
+  }, []);
+
 
   function uint8arrayToHex(value) {
     if (!value) return "";
@@ -175,6 +204,7 @@ function App() {
           }}
         />
 
+
         {!wallet.connected ? (
           <p>Connect DApp with Suiet wallet from now!</p>
         ) : (
@@ -214,7 +244,11 @@ function App() {
       </div>
       <p className="read-the-docs">
         Click on the Vite and Suiet logos to learn more
+
+        yeh wallet
       </p>
+
+      {wallet}
     </div>
   );
 }
