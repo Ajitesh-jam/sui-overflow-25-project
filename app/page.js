@@ -1,89 +1,82 @@
 "use client";
 
-import { useEffect, useRef ,useState} from "react";
+import { useEffect, useRef } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import HeroSlider from "@/components/HeroSlider";
 import PostCard from "@/components/PostCard";
 import HeroGeometric from "@/components/Geometry";
 
-import useUsers from "@/hooks/user.zustand";
-
-
+const posts = [
+  {
+    id: 1,
+    user: {
+      name: "Jessica Parker",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    image: "/ema.png",
+    likes: 234,
+    caption:
+      "Enjoying the beautiful sunset at the beach! 🌅 #sunset #beach #vibes",
+    comments: [
+      { user: "mike_smith", text: "Looks amazing! 😍" },
+      { user: "travel_lover", text: "I need to visit this place!" },
+    ],
+    timestamp: "2 hours ago",
+  },
+  {
+    id: 2,
+    user: {
+      name: "Alex Johnson",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    image: "/ema.png",
+    likes: 156,
+    caption:
+      "Just finished my morning hike! The view was worth every step 🏔️ #hiking #nature #adventure",
+    comments: [
+      { user: "nature_enthusiast", text: "This view is breathtaking!" },
+      { user: "hiker101", text: "Which trail is this?" },
+    ],
+    timestamp: "5 hours ago",
+  },
+  {
+    id: 3,
+    user: {
+      name: "Emma Wilson",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    image: "/ema.png",
+    likes: 342,
+    caption:
+      "Coffee and a good book - perfect Sunday morning ☕📚 #coffeetime #bookworm #relaxing",
+    comments: [
+      { user: "book_lover", text: "What are you reading?" },
+      { user: "coffee_addict", text: "That coffee looks delicious!" },
+    ],
+    timestamp: "7 hours ago",
+  },
+  {
+    id: 4,
+    user: {
+      name: "David Brown",
+      avatar: "/placeholder.svg?height=40&width=40",
+    },
+    image: "/placeholder.svg?height=600&width=800",
+    likes: 189,
+    caption:
+      "Just got my new camera! Can't wait to capture some amazing shots 📸 #photography #newgear #excited",
+    comments: [
+      { user: "photo_enthusiast", text: "Which model did you get?" },
+      { user: "camera_pro", text: "You're going to love it!" },
+    ],
+    timestamp: "1 day ago",
+  },
+];
 
 export default function Home() {
   const controls = useAnimation();
   const ref = useRef(null);
   const inView = useInView(ref, { once: false, amount: 0.1 });
-  const user = useUsers((state)=>state.selectedUser);
-
-  const [posts, setPosts] = useState([
-    
-      {
-        id: 1,
-        user: {
-          name: "Jessica Parker",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        image: "/ema.png",
-        likes: 234,
-        caption:
-          "Enjoying the beautiful sunset at the beach! 🌅 #sunset #beach #vibes",
-        comments: [
-          { user: "mike_smith", text: "Looks amazing! 😍" },
-          { user: "travel_lover", text: "I need to visit this place!" },
-        ],
-        timestamp: "2 hours ago",
-      },
-      {
-        id: 2,
-        user: {
-          name: "Alex Johnson",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        image: "/ema.png",
-        likes: 156,
-        caption:
-          "Just finished my morning hike! The view was worth every step 🏔️ #hiking #nature #adventure",
-        comments: [
-          { user: "nature_enthusiast", text: "This view is breathtaking!" },
-          { user: "hiker101", text: "Which trail is this?" },
-        ],
-        timestamp: "5 hours ago",
-      },
-      {
-        id: 3,
-        user: {
-          name: "Emma Wilson",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        image: "/ema.png",
-        likes: 342,
-        caption:
-          "Coffee and a good book - perfect Sunday morning ☕📚 #coffeetime #bookworm #relaxing",
-        comments: [
-          { user: "book_lover", text: "What are you reading?" },
-          { user: "coffee_addict", text: "That coffee looks delicious!" },
-        ],
-        timestamp: "7 hours ago",
-      },
-      {
-        id: 4,
-        user: {
-          name: "David Brown",
-          avatar: "/placeholder.svg?height=40&width=40",
-        },
-        image: "/placeholder.svg?height=600&width=800",
-        likes: 189,
-        caption:
-          "Just got my new camera! Can't wait to capture some amazing shots 📸 #photography #newgear #excited",
-        comments: [
-          { user: "photo_enthusiast", text: "Which model did you get?" },
-          { user: "camera_pro", text: "You're going to love it!" },
-        ],
-        timestamp: "1 day ago",
-      },
-    
-  ]);
 
   useEffect(() => {
     if (inView) {
@@ -91,53 +84,28 @@ export default function Home() {
     }
   }, [controls, inView]);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   const whereCondition = [{ name: "Tobias Harris" }, { weight: 100 }];
 
-    console.log(" user in page ",user);
-
-   
-
-    async function fetchPosts() {
-      try {
-        const response = await fetch("/api/getAdjNodeByLabel", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            label: ["USER"],
-            where: { name: user.name, email: user.email },
-            edgeLabel: "POSTED_BY",
-            edgeWhere: {},
-            adjNodeLabel: "POST",
-            adjWhere: {},
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const fetchedPosts = await response.json();
-        if (Array.isArray(fetchedPosts)) {
-          fetchedPosts.forEach((post) => {
-            post.id = Math.floor(Math.random() * 1000);
-            post.likes = Math.floor(Math.random() * 1000);
-            post.comments = Math.floor(Math.random() * 100);
-            post.ownerEmail = user.email; // Store owner's email for deletion
-          });
-          console.log(`fetchedPosts `,fetchedPosts);
-
-          //setPosts(fetchedPosts);
-        } else {
-          console.error("Posts is not an array:", fetchedPosts);
-        }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      }
-    }
-    fetchPosts();
-  }, [user]);
+  //   fetch("/api/getNodeByLabel", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       label: "PLAYER",
+  //       where: whereCondition, // Send the 'where' conditions properly
+  //     }),
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! Status: ${response.status}`);
+  //       }
+  //       return response.json(); // Parse JSON correctly
+  //     })
+  //     .then((data) => console.log(data))
+  //     .catch((error) => console.error("Error:", error));
+  // }, []);
 
   return (
     <div className="w-full">

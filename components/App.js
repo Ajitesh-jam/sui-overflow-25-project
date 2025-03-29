@@ -33,19 +33,19 @@ function App() {
     return sampleNft.get(wallet.chain.id) ?? "";
   }, [wallet]);
 
-  function uint8arrayToHex(value: Uint8Array | undefined) {
+  function uint8arrayToHex(value) {
     if (!value) return "";
     // @ts-ignore
     return value.toString("hex");
   }
 
-  async function handleExecuteMoveCall(target: string | undefined) {
+  async function handleExecuteMoveCall(target) {
     if (!target) return;
 
     try {
       const tx = new Transaction();
       tx.moveCall({
-        target: target as any,
+        target: target,
         arguments: [
           tx.pure.string("Suiet NFT"),
           tx.pure.string("Suiet Sample NFT"),
@@ -89,10 +89,10 @@ function App() {
     }
   }
 
-  const handleSignTxnAndVerifySignature = async (contractAddress: string) => {
+  const handleSignTxnAndVerifySignature = async (contractAddress) => {
     const txn = new Transaction();
     txn.moveCall({
-      target: contractAddress as any,
+      target: contractAddress ,
       arguments: [
         txn.pure.string("Suiet NFT"),
         txn.pure.string("Suiet Sample NFT"),
@@ -101,7 +101,7 @@ function App() {
         ),
       ],
     });
-    txn.setSender(wallet.account?.address as string);
+    txn.setSender(wallet.account?.address );
 
     try {
       const signedTxn = await wallet.signTransaction({
@@ -134,7 +134,7 @@ function App() {
     }
   };
 
-  const chainName = (chainId: string | undefined) => {
+  const chainName = (chainId) => {
     switch (chainId) {
       case SuiChainId.MAIN_NET:
         return "Mainnet";
@@ -175,9 +175,12 @@ function App() {
           }}
         />
 
-        {!wallet.connected ? (
+        {
+        !wallet.connected ? 
+        (
           <p>Connect DApp with Suiet wallet from now!</p>
-        ) : (
+        ) :
+         (
           <div>
             <div>
               <p>current wallet: {wallet.adapter?.name}</p>
