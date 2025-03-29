@@ -1,0 +1,181 @@
+"use client";
+
+import { useEffect, useRef ,useState} from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import HeroSlider from "@/components/HeroSlider";
+import PostCard from "@/components/PostCard";
+import HeroGeometric from "@/components/Geometry";
+
+import useUsers from "@/hooks/user.zustand";
+
+
+
+export default function Home() {
+  const controls = useAnimation();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: false, amount: 0.1 });
+  const user = useUsers((state)=>state.selectedUser);
+
+  const [posts, setPosts] = useState([
+    
+      {
+        id: 1,
+        user: {
+          name: "Jessica Parker",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
+        image: "/ema.png",
+        likes: 234,
+        caption:
+          "Enjoying the beautiful sunset at the beach! 🌅 #sunset #beach #vibes",
+        comments: [
+          { user: "mike_smith", text: "Looks amazing! 😍" },
+          { user: "travel_lover", text: "I need to visit this place!" },
+        ],
+        timestamp: "2 hours ago",
+      },
+      {
+        id: 2,
+        user: {
+          name: "Alex Johnson",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
+        image: "/ema.png",
+        likes: 156,
+        caption:
+          "Just finished my morning hike! The view was worth every step 🏔️ #hiking #nature #adventure",
+        comments: [
+          { user: "nature_enthusiast", text: "This view is breathtaking!" },
+          { user: "hiker101", text: "Which trail is this?" },
+        ],
+        timestamp: "5 hours ago",
+      },
+      {
+        id: 3,
+        user: {
+          name: "Emma Wilson",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
+        image: "/ema.png",
+        likes: 342,
+        caption:
+          "Coffee and a good book - perfect Sunday morning ☕📚 #coffeetime #bookworm #relaxing",
+        comments: [
+          { user: "book_lover", text: "What are you reading?" },
+          { user: "coffee_addict", text: "That coffee looks delicious!" },
+        ],
+        timestamp: "7 hours ago",
+      },
+      {
+        id: 4,
+        user: {
+          name: "David Brown",
+          avatar: "/placeholder.svg?height=40&width=40",
+        },
+        image: "/placeholder.svg?height=600&width=800",
+        likes: 189,
+        caption:
+          "Just got my new camera! Can't wait to capture some amazing shots 📸 #photography #newgear #excited",
+        comments: [
+          { user: "photo_enthusiast", text: "Which model did you get?" },
+          { user: "camera_pro", text: "You're going to love it!" },
+        ],
+        timestamp: "1 day ago",
+      },
+    
+  ]);
+
+  useEffect(() => {
+    if (inView) {
+      controls.start("visible");
+    }
+  }, [controls, inView]);
+
+  useEffect(() => {
+
+    console.log(" user in page ",user);
+
+   
+
+    async function fetchPosts() {
+      try {
+        const response = await fetch("/api/getAdjNodeByLabel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            label: ["USER"],
+            where: { name: user.name, email: user.email },
+            edgeLabel: "POSTED_BY",
+            edgeWhere: {},
+            adjNodeLabel: "POST",
+            adjWhere: {},
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const fetchedPosts = await response.json();
+        if (Array.isArray(fetchedPosts)) {
+          fetchedPosts.forEach((post) => {
+            post.id = Math.floor(Math.random() * 1000);
+            post.likes = Math.floor(Math.random() * 1000);
+            post.comments = Math.floor(Math.random() * 100);
+            post.ownerEmail = user.email; // Store owner's email for deletion
+          });
+          console.log(`fetchedPosts `,fetchedPosts);
+
+          //setPosts(fetchedPosts);
+        } else {
+          console.error("Posts is not an array:", fetchedPosts);
+        }
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    }
+    fetchPosts();
+  }, [user]);
+
+  return (
+    <div className="w-full">
+      <HeroSlider></HeroSlider>
+
+      <section className="max-w-4xl mx-auto px-4 py-12 ">
+        <motion.h2
+          className="text-3xl font-bold text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+        >
+          Latest Posts
+        </motion.h2>
+
+        <div ref={ref} className="space-y-12">
+          {posts.map((post, index) => (
+            <motion.div
+              key={post.id}
+              initial="hidden"
+              animate={controls}
+              variants={{
+                hidden: { opacity: 0, y: 50 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.5,
+                    delay: index * 0.2,
+                  },
+                },
+              }}
+            >
+              <PostCard post={post} />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
