@@ -1,31 +1,26 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const Card = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <motion.div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
-        "hover:shadow-md transition-shadow duration-200",
-        "bg-gradient-to-b from-background to-background/95",
-        className
+        "rounded-xl border bg-gradient-to-br from-gray-900 to-gray-800 text-card-foreground shadow-glow overflow-hidden",
+        className,
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      whileHover={{
-        boxShadow:
-          "0 10px 25px -5px rgba(236, 72, 153, 0.1), 0 8px 10px -6px rgba(236, 72, 153, 0.1)",
-      }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
       {...props}
     />
-  );
-});
-Card.displayName = "Card";
+  )
+})
+Card.displayName = "Card"
 
 const CardHeader = React.forwardRef(({ className, ...props }, ref) => {
   return (
@@ -37,41 +32,40 @@ const CardHeader = React.forwardRef(({ className, ...props }, ref) => {
       transition={{ duration: 0.3, delay: 0.1 }}
       {...props}
     />
-  );
-});
-CardHeader.displayName = "CardHeader";
+  )
+})
+CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <motion.h3
       ref={ref}
       className={cn(
-        "text-2xl font-semibold leading-none tracking-tight",
-        "bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent",
-        className
+        "text-2xl font-semibold leading-none tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400",
+        className,
       )}
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
       {...props}
     />
-  );
-});
-CardTitle.displayName = "CardTitle";
+  )
+})
+CardTitle.displayName = "CardTitle"
 
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <motion.p
       ref={ref}
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-sm text-gray-400", className)}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.3 }}
       {...props}
     />
-  );
-});
-CardDescription.displayName = "CardDescription";
+  )
+})
+CardDescription.displayName = "CardDescription"
 
 const CardContent = React.forwardRef(({ className, ...props }, ref) => {
   return (
@@ -83,9 +77,9 @@ const CardContent = React.forwardRef(({ className, ...props }, ref) => {
       transition={{ duration: 0.3, delay: 0.3 }}
       {...props}
     />
-  );
-});
-CardContent.displayName = "CardContent";
+  )
+})
+CardContent.displayName = "CardContent"
 
 const CardFooter = React.forwardRef(({ className, ...props }, ref) => {
   return (
@@ -97,15 +91,9 @@ const CardFooter = React.forwardRef(({ className, ...props }, ref) => {
       transition={{ duration: 0.3, delay: 0.4 }}
       {...props}
     />
-  );
-});
-CardFooter.displayName = "CardFooter";
+  )
+})
+CardFooter.displayName = "CardFooter"
 
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-};
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+

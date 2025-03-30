@@ -18,10 +18,11 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800"
+      className="sticky top-0 z-50 "
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      style={{backgroundColor: "rgba(255, 255, 255, 0.9) solid"}}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
