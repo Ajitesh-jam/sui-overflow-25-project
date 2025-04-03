@@ -1,9 +1,11 @@
 "use client"
 
-import { useState,useMemo } from "react"
+import { useState,useMemo ,useEffect} from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+
+import useUsers from "@/hooks/user.zustand"
 
 import { AllDefaultWallets, defineStashedWallet, WalletProvider } from "@suiet/wallet-kit"
 import {
@@ -50,6 +52,8 @@ export default function GamePage() {
   const router = useRouter()
   const gamename="suiBattleField"
 
+  const user = useUsers((state) => state.selectedUser)
+
   const [activeTab, setActiveTab] = useState("host")
   const [isWalletConnected, setIsWalletConnected] = useState(false)
   const [lobbyCode, setLobbyCode] = useState("")
@@ -60,7 +64,43 @@ export default function GamePage() {
     { id: 1, host: "Player123", stake: 100, players: 1, maxPlayers: 2 },
     { id: 2, host: "GameMaster", stake: 200, players: 1, maxPlayers: 2 },
     { id: 3, host: "CryptoChamp", stake: 150, players: 1, maxPlayers: 2 },
+    
   ])
+
+  useEffect(() => {
+
+    function fetchGames(){
+       fetch("/api/getNodeByLabel", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          label: "Game",
+          where:{isActive:true}
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          console.log("Gamess ", response)
+
+          return response.json(); // Parse JSON correctly
+        })
+        .then((data) => {
+          
+          console.log(data)
+          setHostedGames(data);
+        
+        })
+        .catch((error) => console.error("Error:", error));
+    }
+    fetchGames();
+
+
+  },[]);
+
   const wallet = useWallet();
   // const wallet = useWalletStore((state)=>state.wallet);
 
@@ -113,7 +153,7 @@ export default function GamePage() {
   }
 
   const handleCreateRoom = () => {
-    if (!isWalletConnected) {
+    if (!wallet) {
       alert("Please connect your wallet first!")
       return
     }
@@ -128,7 +168,30 @@ export default function GamePage() {
       code: lobbyCode,
       stake: stakeAmount,
       link: game.link,
+      hostWallet:wallet.account?.publicKey,
+      isActive: true,
+      hostUserName:user.name
+
     }
+
+    fetch("/api/createNode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          label: ["Game"],
+          properties: newRoom,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // Parse JSON correctly
+        })
+        .then((data) => console.log(data))
+        .catch((error) => console.error("Error:", error));
 
     setCreatedRoom(newRoom)
     setShowModal(true)
@@ -142,12 +205,38 @@ export default function GamePage() {
 
     setCreatedRoom({
       id: hostedGame.id,
-      code: `GAME${hostedGame.id}`,
-      stake: hostedGame.stake,
+      code: hostedGame.n.properties.code,
+      stake: hostedGame.n.properties.stake.low,
       link: game.link,
     })
 
+    fetch("/api/updateNode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        label: "Game",
+        where: {code: hostedGame.n.properties.code},
+        updates: {
+          isActive: false,
+          players: hostedGame.n.properties.players + 1,
+          playerWallet: wallet.account?.publicKey,
+          playerUserName: user.name,
+        },
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json(); // Parse JSON correctly
+      })
+      .then((data) => console.log(data))
+      .catch((error) => console.error("Error:", error));
+
     setShowModal(true)
+
   }
 
   const chainName = (chainId) => {
@@ -455,9 +544,9 @@ export default function GamePage() {
                   )}
 
                   <div className="space-y-4">
-                    {hostedGames.map((hostedGame) => (
+                    {hostedGames.map((hostedGame,index) => (
                       <motion.div
-                        key={hostedGame.id}
+                        key={index}
                         whileHover={{ scale: 1.02 }}
                         className="bg-gray-800 rounded-lg p-4 border border-gray-700 flex flex-col md:flex-row md:items-center md:justify-between"
                       >
@@ -466,12 +555,12 @@ export default function GamePage() {
                             <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-500 rounded-full flex items-center justify-center mr-2">
                               <span className="text-sm">👑</span>
                             </div>
-                            <h3 className="font-semibold">{hostedGame.host}</h3>
+                            <h3 className="font-semibold">{hostedGame.n.properties.hostUserName}</h3>
                           </div>
                           <div className="flex space-x-4 text-sm text-gray-400">
-                            <span>Stake: {hostedGame.stake} Tokens</span>
+                            <span>Stake: {hostedGame.n.properties.stake.low} Tokens</span>
                             <span>
-                              Players: {hostedGame.players}/{hostedGame.maxPlayers}
+                              Players: 1
                             </span>
                           </div>
                         </div>
@@ -547,7 +636,15 @@ export default function GamePage() {
                     Go to Game
                   </a>
                   <button
-                    onClick={() => setShowModal(false)}
+                    onClick={() => {
+
+
+                      
+                      
+                      
+                      setShowModal(false)
+                    
+                    }}
                     className="block w-full bg-gray-700 text-white font-bold py-3 rounded-lg text-center"
                   >
                     Close
@@ -561,4 +658,6 @@ export default function GamePage() {
     
   )
 }
+
+
 

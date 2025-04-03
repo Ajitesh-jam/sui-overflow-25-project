@@ -14,6 +14,10 @@ export async function POST(req) {
     //   );
     // }
 
+    console.log("Label:", label);
+    console.log("Where:", where);
+    console.log("Updates:", updates);
+
     if (!where || Object.keys(where).length === 0) {
       return NextResponse.json(
         { error: "'where' condition is required to update a node" },

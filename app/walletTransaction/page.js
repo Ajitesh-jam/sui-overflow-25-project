@@ -40,66 +40,134 @@ function MyComponentRPC() {
 
 
 
+import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+
+
+function MyComponentSign() {
+    const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+    const [digest, setDigest] = useState('');
+    const currentAccount = useCurrentAccount();
+
+    return (
+        <div style={{ padding: 20 }}>
+            <ConnectButton />
+            {currentAccount && (
+                <>
+                    <div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const tx = new Transaction();
+                                    tx.moveCall({
+                                        target: '0x9e6783a9822f30d293d5e622887663042690a792803a46d75664a569790afa89::my_coin::mint',
+                                        arguments: [
+                                            tx.object('0x3f0be8423b8ecb979e77aaff7cab52313d070df3797dfe11959c1c88abd508e7'), // Treasury Cap ID
+                                            tx.pure.u64(300), // Coin Amount
+                                            tx.pure.address('0xa88e4aa0090233c7485b4f2b12d1965e202b62eabd5b691e9820468d63f3ca40'), // Recipient Address
+                                        ],
+                                    });
+
+                                    console.log('Transaction Block:', tx);
+
+                                    const res = await signAndExecuteTransaction(
+                                        {
+                                            transaction: tx,
+                                            chain: 'sui:devnet',
+                                        },
+                                        {
+                                            onSuccess: (result) => {
+                                                console.log('Transaction executed successfully');
+                                                console.log('Executed transaction:', result);
+                                                setDigest(result.digest);
+                                            },
+                                            onError: (error) => {
+                                                console.error('Transaction execution failed:', error);
+                                            },
+                                        }
+                                    );
+
+                                    console.log('signAndExecuteTransaction result:', res);
+                                } catch (error) {
+                                    console.error('Error during transaction execution:', error);
+                                }
+                            }}
+                        >
+                            Sign and execute transaction
+                        </button>
+                    </div>
+                    <div>Digest: {digest}</div>
+                </>
+            )}
+        </div>
+    );
+}
+
+
+
+
+
+
+
 function MyComponent() {
-	const { mutateAsync: signTransaction } = useSignTransaction();
-	const client = useSuiClient();
-	const currentAccount = useCurrentAccount();
-	const [signature, setSignature] = useState('');
+    const { mutateAsync: signTransaction } = useSignTransaction();
+    const client = useSuiClient();
+    const currentAccount = useCurrentAccount();
+    const [signature, setSignature] = useState('');
 
-	return (
-		<div style={{ padding: 20 }}>
-			<ConnectButton />
-			{currentAccount && (
-				<>
-					<div>
-						<button
-							onClick={async () => {
-								try {
-									const tx = new Transaction();
-									tx.moveCall({
-										target: '0x3b2f64b59090447d0ace701d2bc5da7507a7d5b8ec5dce7c639750af661d3df4::my_coin::mint',
-										arguments: [
-											tx.object('0x6d70bd04dc5f2cb5c45e994392efe46b72686f85fed615606ac8427c16265adb'), // Treasury Cap ID (object)
-											tx.pure.u64(69), // Coin Amount (pure value with u64 type)
-											tx.pure.address('0xa88e4aa0090233c7485b4f2b12d1965e202b62eabd5b691e9820468d63f3ca40'), // Recipient Address (pure value with address type)
-										],
-									});
+    return (
+        <div style={{ padding: 20 }}>
+            <ConnectButton />
+            {currentAccount && (
+                <>
+                    <div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const tx = new Transaction();
+                                    tx.moveCall({
+                                        target: '0x9e6783a9822f30d293d5e622887663042690a792803a46d75664a569790afa89::my_coin::mint',
+                                        arguments: [
+                                            tx.object('0x3f0be8423b8ecb979e77aaff7cab52313d070df3797dfe11959c1c88abd508e7'), // Treasury Cap ID
+                                            tx.pure.u64(30), // Coin Amount
+                                            tx.pure.address('0xa88e4aa0090233c7485b4f2b12d1965e202b62eabd5b691e9820468d63f3ca40'), // Recipient Address
+                                        ],
+                                    });
 
-									// Sign transaction
-									const { bytes, signature } = await signTransaction({
-										transaction: tx,
-										chain: 'sui:devnet',
-									});
+                                    console.log('Transaction Block:', tx);
+
+                                    // Sign transaction
+                                    const { bytes, signature } = await signTransaction({
+                                        transaction: tx,
+                                    });
                                     console.log('Transaction Bytes:', bytes);
                                     console.log('Transaction Signature:', signature);
 
-									setSignature(signature);
+                                    setSignature(signature);
 
-									// Execute transaction
-									const executeResult = await client.executeTransactionBlock({
-										transactionBlock: bytes,
-										signature,
-										options: {
-											showEffects: true,
-										},
-									});
+                                    // Execute transaction
+                                    const executeResult = await client.executeTransactionBlock({
+                                        transactionBlock: bytes,
+                                        signature,
+                                        options: {
+                                            showEffects: true,
+                                        },
+                                    });
 
-									console.log('Transaction Result:', executeResult);
-								} catch (error) {
-									console.error('Transaction Failed:', error);
-								}
-							}}
-						>
-							Execute Mint Transaction
-						</button>
-					</div>
-					<div>Signature: {signature}</div>
-				</>
-			)}
-		</div>
-	);
+                                    console.log('Transaction Result:', executeResult);
+                                } catch (error) {
+                                    console.error('Transaction Failed:', error);
+                                }
+                            }}
+                        >
+                            Execute Mint Transaction
+                        </button>
+                    </div>
+                    <div>Signature: {signature}</div>
+                </>
+            )}
+        </div>
+    );
 }
-
 
 
 export default function App() {
@@ -107,7 +175,8 @@ export default function App() {
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider networks={networkConfig} defaultNetwork="localnet">
 				<WalletProvider>
-					<MyComponent />
+					{/* <MyComponent /> */}
+                    <MyComponentSign />
 				</WalletProvider>
 			</SuiClientProvider>
 		</QueryClientProvider>
