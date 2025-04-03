@@ -1,0 +1,34 @@
+(base) ajiteshjamulkar@Ajiteshs-MacBook-Pro sui-overflow-25-project % sui client objects 0xa88e4aa0090233c7485b4f2b12d1965e202b62eabd5b691e9820468d63f3ca40
+[warning] Client/Server api version mismatch, client api version : 1.45.0, server api version : 1.46.0
+╭───────────────────────────────────────────────────────────────────────────────────────╮
+│ ╭────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ objectId   │  0x6d70bd04dc5f2cb5c45e994392efe46b72686f85fed615606ac8427c16265adb  │ │
+│ │ version    │  190                                                                 │ │
+│ │ digest     │  H3XbsFwiTzxeBCPIBm5IU2q6KevYkA/eaRnWm7AlNm4=                        │ │
+│ │ objectType │  0x0000..0002::coin::TreasuryCap                                     │ │
+│ ╰────────────┴──────────────────────────────────────────────────────────────────────╯ │
+│ ╭────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ objectId   │  0xa682113233395f3a9fcffb318c7565eef05ddbf82dc8d788987e906a8ca8d05b  │ │
+│ │ version    │  10                                                                  │ │
+│ │ digest     │  PW/yQsIU3dT8cmm0K0M64fFUR13omNDpeTtTmjnZASU=                        │ │
+│ │ objectType │  0x0000..0002::coin::Coin                                            │ │
+│ ╰────────────┴──────────────────────────────────────────────────────────────────────╯ │
+│ ╭────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ objectId   │  0xb9095c074e5cf22821739e4c7517f81465fc8365984322a984e555bd68e70961  │ │
+│ │ version    │  189                                                                 │ │
+│ │ digest     │  1GqdCXC0ToFlYg5MNDxMA6zh015hDHNahrkvYJ9L0hc=                        │ │
+│ │ objectType │  0x0000..0002::coin::Coin                                            │ │
+│ ╰────────────┴──────────────────────────────────────────────────────────────────────╯ │
+╰───────────────────────────────────────────────────────────────────────────────────────╯
+(base) ajiteshjamulkar@Ajiteshs-MacBook-Pro sui-overflow-25-project % sui client balance 0xa88e4aa0090233c7485b4f2b12d1965e202b62eabd5b691e9820468d63f3ca40
+[warning] Client/Server api version mismatch, client api version : 1.45.0, server api version : 1.46.0
+╭─────────────────────────────────────────╮
+│ Balance of coins owned by this address  │
+├─────────────────────────────────────────┤
+│ ╭─────────────────────────────────────╮ │
+│ │ coin  balance (raw)  balance        │ │
+│ ├─────────────────────────────────────┤ │
+│ │ Sui   10000000000    10.00 SUI      │ │
+│ │       69             0.00 MY_COIN   │ │
+│ ╰─────────────────────────────────────╯ │
+╰─────────────────────────────────────────╯

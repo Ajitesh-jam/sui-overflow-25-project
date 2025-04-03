@@ -4,7 +4,7 @@ import { useState,useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
-import styles from "../styles/Home.module.css"
+
 import { AllDefaultWallets, defineStashedWallet, WalletProvider } from "@suiet/wallet-kit"
 import {
   ConnectButton as SuietConnectButton,
@@ -23,6 +23,10 @@ const sampleNft = new Map([
   ["sui:testnet", "0x5ea6aafe995ce6506f07335a40942024106a57f6311cb341239abf2c3ac7b82f::nft::mint"],
   ["sui:mainnet", "0x5b45da03d42b064f5e051741b6fed3b29eb817c7923b83b92f37a1d2abf4fbab::nft::mint"],
 ])
+
+import '../styles/suitWallet.css';
+import styles from "../styles/Home.module.css";
+import '@suiet/wallet-kit/style.css';
 
 
 // Custom styled connect button that wraps the Suiet ConnectButton
@@ -175,14 +179,7 @@ export default function GamePage() {
   
 
   return (
-    <WalletProvider
-      defaultWallets={[
-        ...AllDefaultWallets,
-        defineStashedWallet({
-          appName: "Suiet Kit Playground",
-        }),
-      ]}
-    >
+
       <div className={styles.container}>
         <motion.div
           initial={{ opacity: 0 }}
@@ -273,133 +270,148 @@ export default function GamePage() {
                         Connect Wallet
                       </motion.button>
                     )} */}
-                              <div className="flex flex-col items-center justify-center py-6">
-                    <ConnectButton
-                      onConnectError={(error) => {
-                        if (error.code === ErrorCode.WALLET__CONNECT_ERROR__USER_REJECTED) {
-                          console.warn("user rejected the connection to " + error.details?.wallet)
-                          setActionStatus({ type: "warning", message: "Connection rejected" })
-                          setTimeout(() => setActionStatus(null), 3000)
-                        } else {
-                          console.warn("unknown connect error: ", error)
-                          setActionStatus({ type: "error", message: "Connection failed" })
-                          setTimeout(() => setActionStatus(null), 3000)
-                        }
-                      }}
-                      />
+
+                    <WalletProvider
+                      defaultWallets={[
+                        ...AllDefaultWallets,
+                        defineStashedWallet({
+                          appName: "Suiet Kit Playground",
+                        }),
+                      ]}
+                    >
+                      
+                    <div className="flex flex-col items-center justify-center py-6">
+                              <ConnectButton
+                                onConnectError={(error) => {
+                                  if (error.code === ErrorCode.WALLET__CONNECT_ERROR__USER_REJECTED) {
+                                    console.warn("user rejected the connection to " + error.details?.wallet)
+                                    setActionStatus({ type: "warning", message: "Connection rejected" })
+                                    setTimeout(() => setActionStatus(null), 3000)
+                                  } else {
+                                    console.warn("unknown connect error: ", error)
+                                    setActionStatus({ type: "error", message: "Connection failed" })
+                                    setTimeout(() => setActionStatus(null), 3000)
+                                  }
+                                }}
+                                />
+
+                          {!wallet.connected ? (
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.3 }}
+                              className="mt-6 text-gray-400 text-center"
+                            >
+                              Connect your wallet to access gaming features and rewards
+                            </motion.p>
+                          ) : (
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.5 }}
+                              className="w-full mt-6"
+                            >
+                              <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-800/50 rounded-lg p-4 mb-4">
+                                <div className="flex items-center mb-4 sm:mb-0">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                                    <Wallet className="h-5 w-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-white">{wallet.adapter?.name}</p>
+                                    <p className="text-sm text-gray-400">{truncateAddress(wallet.account?.address)}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center bg-gray-900 rounded-lg px-4 py-2">
+                                  <CreditCard className="h-4 w-4 text-purple-400 mr-2" />
+                                  
+                                </div>
+                              </div>
+
+                              <div className="flex justify-between items-center mb-2">
+                                <p className="text-sm text-gray-400">
+                                  Network: <span className="text-white">{chainName(wallet.chain?.id)}</span>
+                                </p>
+                                <button
+                                  onClick={() => setShowDetails(!showDetails)}
+                                  className="flex items-center text-sm text-purple-400 hover:text-purple-300"
+                                >
+                                  {showDetails ? (
+                                    <>
+                                      Hide Details <ChevronUp className="ml-1 h-4 w-4" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      Show Details <ChevronDown className="ml-1 h-4 w-4" />
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              <AnimatePresence>
+                                {showDetails && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <div className="bg-gray-800/30 rounded-lg p-4 mb-4 text-sm">
+                                      <p className="mb-2">
+                                        <span className="text-gray-400">Address: </span>
+                                        <span className="text-white break-all">{wallet.account?.address}</span>
+                                      </p>
+                                      <p className="mb-2">
+                                        <span className="text-gray-400">Public Key: </span>
+                                        <span className="text-white break-all">{uint8arrayToHex(wallet.account?.publicKey)}</span>
+                                      </p>
+                                      <p>
+                                        <span className="text-gray-400">Status: </span>
+                                        <span className="text-green-400">
+                                          {wallet.connecting ? "Connecting" : wallet.connected ? "Connected" : "Disconnected"}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                                {nftContractAddr && (
+                                  <Button
+                                    variant="gaming"
+                                    onClick={() => handleExecuteMoveCall(nftContractAddr)}
+                                    className="flex items-center justify-center"
+                                  >
+                                    <Award className="mr-2 h-4 w-4" />
+                                    Mint Gaming NFT
+                                  </Button>
+                                )}
+                                <Button variant="neon" onClick={handleSignMsg} className="flex items-center justify-center">
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  Sign Message
+                                </Button>
+                                {nftContractAddr && (
+                                  <Button
+                                    variant="default"
+                                    onClick={() => handleSignTxnAndVerifySignature(nftContractAddr)}
+                                    className="flex items-center justify-center"
+                                  >
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    Sign & Verify Txn
+                                  </Button>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}   
+                   </div>
+                    
+                    
+                    </WalletProvider> 
+
+
 
                       
-
-            {!wallet.connected ? (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="mt-6 text-gray-400 text-center"
-              >
-                Connect your wallet to access gaming features and rewards
-              </motion.p>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full mt-6"
-              >
-                <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-800/50 rounded-lg p-4 mb-4">
-                  <div className="flex items-center mb-4 sm:mb-0">
-                    <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                      <Wallet className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{wallet.adapter?.name}</p>
-                      <p className="text-sm text-gray-400">{truncateAddress(wallet.account?.address)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center bg-gray-900 rounded-lg px-4 py-2">
-                    <CreditCard className="h-4 w-4 text-purple-400 mr-2" />
-                    
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-400">
-                    Network: <span className="text-white">{chainName(wallet.chain?.id)}</span>
-                  </p>
-                  <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="flex items-center text-sm text-purple-400 hover:text-purple-300"
-                  >
-                    {showDetails ? (
-                      <>
-                        Hide Details <ChevronUp className="ml-1 h-4 w-4" />
-                      </>
-                    ) : (
-                      <>
-                        Show Details <ChevronDown className="ml-1 h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {showDetails && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="bg-gray-800/30 rounded-lg p-4 mb-4 text-sm">
-                        <p className="mb-2">
-                          <span className="text-gray-400">Address: </span>
-                          <span className="text-white break-all">{wallet.account?.address}</span>
-                        </p>
-                        <p className="mb-2">
-                          <span className="text-gray-400">Public Key: </span>
-                          <span className="text-white break-all">{uint8arrayToHex(wallet.account?.publicKey)}</span>
-                        </p>
-                        <p>
-                          <span className="text-gray-400">Status: </span>
-                          <span className="text-green-400">
-                            {wallet.connecting ? "Connecting" : wallet.connected ? "Connected" : "Disconnected"}
-                          </span>
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-                  {nftContractAddr && (
-                    <Button
-                      variant="gaming"
-                      onClick={() => handleExecuteMoveCall(nftContractAddr)}
-                      className="flex items-center justify-center"
-                    >
-                      <Award className="mr-2 h-4 w-4" />
-                      Mint Gaming NFT
-                    </Button>
-                  )}
-                  <Button variant="neon" onClick={handleSignMsg} className="flex items-center justify-center">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Sign Message
-                  </Button>
-                  {nftContractAddr && (
-                    <Button
-                      variant="default"
-                      onClick={() => handleSignTxnAndVerifySignature(nftContractAddr)}
-                      className="flex items-center justify-center"
-                    >
-                      <Shield className="mr-2 h-4 w-4" />
-                      Sign & Verify Txn
-                    </Button>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </div>
 
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -546,7 +558,7 @@ export default function GamePage() {
           )}
         </AnimatePresence>
       </div>
-    </WalletProvider>
+    
   )
 }
 
