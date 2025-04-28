@@ -10,13 +10,12 @@ import PostModal from "@/components/post-modal";
 import useUsers from "@/hooks/user.zustand";
 
 
-// Inside your JSX where UserHeader is rendered
 
 
 
 
 export default function UserProfilePage() {
-  const [activeTab, setActiveTab] = useState("posts");
+  const [activeTab, setActiveTab] = useState("games");
 
   const user = useUsers((state) => state.selectedUser);
   const [posts, setPosts] = useState([]);
@@ -119,7 +118,7 @@ export default function UserProfilePage() {
   return (
     <main className="container max-w-4xl mx-auto px-4 py-8">
       <UserHeader user={userData} />
-      <StoryCircles stories={stories} />
+     
 
       {/* ✅ Post Modal */}
       {selectedPost && (
@@ -134,14 +133,13 @@ export default function UserProfilePage() {
       <Tabs defaultValue="posts" className="mt-8" onValueChange={setActiveTab}>
         <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="posts">Posts</TabsTrigger>
-          <TabsTrigger value="reels">Reels</TabsTrigger>
+          <TabsTrigger value="games">games</TabsTrigger>
         </TabsList>
         <TabsContent value="posts" className="mt-6">
-          {/* ✅ Pass handlePostClick to PostGrid */}
           <PostGrid active={activeTab === "posts"} posts={posts} onPostClick={handlePostClick} />
         </TabsContent>
-        <TabsContent value="reels" className="mt-6">
-          <ReelGrid active={activeTab === "reels"} />
+        <TabsContent value="games" className="mt-6">
+          <ReelGrid active={activeTab === "games"} />
         </TabsContent>
       </Tabs>
     </main>

@@ -67,6 +67,8 @@ export default function GamePage() {
     
   ])
 
+  const [isPrivate,setIsPrivate]=useState(false);
+
   useEffect(() => {
 
     function fetchGames(){
@@ -77,7 +79,7 @@ export default function GamePage() {
         },
         body: JSON.stringify({
           label: "Game",
-          where:{isActive:true}
+          where:{isActive:true,isPrivate:false}
         }),
       })
         .then((response) => {
@@ -170,18 +172,30 @@ export default function GamePage() {
       link: game.link,
       hostWallet:wallet.account?.publicKey,
       isActive: true,
-      hostUserName:user.name
+      hostUserName:user.name,
+      isPrivate:isPrivate,
 
     }
 
-    fetch("/api/createNode", {
+    fetch("/api/createAdjacentNode", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          label: ["Game"],
-          properties: newRoom,
+          startNodeLabel: ["USER"],
+          startNodeWhere: { name: user.name },
+          endNodeLabel: ["Game"],
+          endNodeWhere: newRoom,
+          edgeLabel: "HOSTED",
+          properties: {
+            stake: stakeAmount,
+            code: lobbyCode,
+            isActive: true,
+            players: 1,
+            hostUserName:user.name,
+            isPrivate:isPrivate,
+          },
         }),
       })
         .then((response) => {
@@ -497,10 +511,19 @@ export default function GamePage() {
                     
                     
                     </WalletProvider> 
-
-
-
-                      
+                   
+                    <div className="flex items-center mb-2">
+                      <input
+                        type="checkbox"
+                        id="privateGame"
+                        checked={isPrivate}
+                        onChange={(e) => setIsPrivate(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <label htmlFor="privateGame" className="text-gray-400">
+                        Private Game
+                      </label>
+                    </div>
 
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -623,6 +646,8 @@ export default function GamePage() {
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Stake Amount:</span>
                     <span>{createdRoom.stake} Tokens</span>
+                   
+
                   </div>
                 </div>
 
@@ -637,10 +662,6 @@ export default function GamePage() {
                   </a>
                   <button
                     onClick={() => {
-
-
-                      
-                      
                       
                       setShowModal(false)
                     

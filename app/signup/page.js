@@ -408,41 +408,41 @@ export default function SignupPage() {
       // Simulate API call
       console.log("Sending data to API:", userData);
 
-      // fetch("/api/createNode", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     label: ["USER"],
-      //     properties: userData,
-      //   }),
-      // })
-      //   .then((response) => {
-      //     if (!response.ok) {
-      //       throw new Error(`HTTP error! Status: ${response.status}`);
-      //     }
-      //     return response.json(); // Parse JSON correctly
-      //   })
-      //   .then((data) => console.log(data))
-      //   .catch((error) => console.error("Error:", error));
+      fetch("/api/createNode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          label: ["USER"],
+          properties: userData,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // Parse JSON correctly
+        })
+        .then((data) => console.log(data))
+        .catch((error) => console.error("Error:", error));
 
-      // Simulate successful response
+      //Simulate successful response
 
-      // setTimeout(() => {
-      //   setIsSuccess(true);
-      //   setTimeout(() => {
-      //     //setUser(userData);
-      //     setUser({
-      //       ...userData,
-      //       followers: 1,
-      //       following: 0,
-      //       posts: 0,
-      //     });
+      setTimeout(() => {
+        setIsSuccess(true);
+        setTimeout(() => {
+          //setUser(userData);
+          setUser({
+            ...userData,
+            followers: 1,
+            following: 0,
+            posts: 0,
+          });
 
-      //     router.push("/profile");
-      //   }, 2000);
-      // }, 1500);
+          router.push("/profile");
+        }, 2000);
+      }, 1500);
     } catch (error) {
       console.error("Error during signup:", error);
     } finally {

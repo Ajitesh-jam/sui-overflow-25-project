@@ -2,36 +2,86 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Play } from "lucide-react"
+import { Heart, MessageCircle, Play,DollarSign,House } from "lucide-react"
 import { motion } from "framer-motion"
+import useUser  from "@/hooks/user.zustand"
 
-export default function ReelGrid({ active }) {
-  const [reels, setReels] = useState([])
+export default function GameGrid({ active }) {
+  const [Games, setGames] = useState([])
+  const user = useUser((state) => state.selectedUser)
+
 
   useEffect(() => {
-    // Mock reels data
-    const mockReels = Array.from({ length: 6 }, (_, i) => ({
+
+
+
+    async function fetchGame() {
+      try {
+        const response = await fetch("/api/getAdjNodeByLabel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            label: ["USER"],
+            where: { name: user.name },
+            edgeLabel: "HOSTED",
+            edgeWhere: {},
+            adjNodeLabel: "Game",
+            adjWhere: {
+              isActive: true,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const fetchedGame = await response.json();
+        console.log("Game Response:", fetchedGame);
+
+        if (Array.isArray(fetchedGame)) {
+          const enhancedGame = fetchedGame.map((post) => ({
+            ...post,
+            id: Math.floor(Math.random() * 1000),
+            likes: Math.floor(Math.random() * 1000),
+            comments: Math.floor(Math.random() * 100),
+          }));
+
+          console.log("Enhanced games:", enhancedGame);
+          setGames(enhancedGame);
+          
+        }
+      } catch (error) {
+        console.error("Error fetching Game:", error);
+      }
+    }
+    fetchGame()
+
+    // Mock Games data
+    const mockGames = Array.from({ length: 6 }, (_, i) => ({
       id: i + 1,
-      image: `/placeholder.svg?height=600&width=400&text=Reel+${i + 1}`,
+      image: `/placeholder.svg?height=600&width=400&text=Game+${i + 1}`,
       likes: Math.floor(Math.random() * 5000),
       comments: Math.floor(Math.random() * 500),
       views: Math.floor(Math.random() * 50000),
     }))
 
-    setReels(mockReels)
-  }, [])
+    setGames(mockGames)
+  }, [user])
 
   return (
     <div className="grid grid-cols-3 gap-1 md:gap-4">
-      {reels.map((reel, index) => (
+      {Games.map((Game, index) => (
         <motion.div
-          key={reel.id}
+          key={index}
           className="relative aspect-[9/16] group"
           initial={{ opacity: 0, y: 20 }}
           animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-          <Image src={reel.image || "/placeholder.svg"} alt={`Reel ${reel.id}`} fill className="object-cover" />
+          <Image src={"/suiBattleField.png"} alt={`Game ${Game.id}`} fill className="object-cover" />
           <div className="absolute bottom-2 right-2">
             <Play className="h-6 w-6 text-white fill-white" />
           </div>
@@ -42,8 +92,8 @@ export default function ReelGrid({ active }) {
               whileInView={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <Heart className="h-5 w-5 fill-white text-white" />
-              <span>{reel.likes}</span>
+              <DollarSign className="h-5 w-5 fill-white text-white" />
+              <span>{Game.m?.properties?.stake}</span>
             </motion.div>
             <motion.div
               className="flex items-center gap-1"
@@ -51,8 +101,8 @@ export default function ReelGrid({ active }) {
               whileInView={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 10, delay: 0.1 }}
             >
-              <MessageCircle className="h-5 w-5" />
-              <span>{reel.comments}</span>
+              <House className="h-5 w-5" />
+              <span>{Game.m?.properties?.code}</span>
             </motion.div>
           </div>
         </motion.div>

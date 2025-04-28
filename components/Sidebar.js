@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Search, PlusSquare, Compass, Heart, MessageCircle, User, X } from "lucide-react"
+import { Home, Search, PlusSquare, Compass, Heart, MessageCircle, User, X,Bell ,Trophy} from "lucide-react"
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -30,10 +30,9 @@ export default function Sidebar() {
   const links = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
-    { href: "/games", icon: Compass, label: "Games" },
     { href: "/buyTokens", icon: PlusSquare, label: "Buy Tokens" },
-    { href: "/notifications", icon: Heart, label: "Notifications" },
-    { href: "/rewards", icon: MessageCircle, label: "Rewards" },
+    { href: "/notifications", icon: Bell, label: "Notifications" },
+    { href: "/rewards", icon: Trophy, label: "Rewards" },
     { href: "/profile", icon: User, label: "Profile" },
   ]
 

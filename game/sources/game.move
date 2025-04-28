@@ -1,119 +1,85 @@
-module game::gaming_token {
-    use sui::balance::{Balance};
-    use sui::coin::{Coin, TreasuryCap};
-    use sui::tx_context::TxContext;
-    use std::string::String;
-    use sui::transfer;
-    use sui::object;
+module game::global_currency {
+    use sui::coin::{Self, Coin, TreasuryCap};
+    use sui::balance::{Self, Balance};
 
-    /// Custom error codes
-    const E_INSUFFICIENT_FUNDS: u64 = 1;
-    const E_GAME_NOT_FOUND: u64 = 2;
-    const E_GAME_ALREADY_JOINED: u64 = 3;
 
-    /// Gaming Token Struct
-    public struct GamingToken has key, store {
+
+    use sui::sui::SUI;
+
+
+    /// The gaming coin
+    public struct GLOBAL_CURRENCY has drop {}
+
+    /// Store for managing treasury and profits
+    public struct CurrencyStore has key {
         id: UID,
-        treasury: TreasuryCap<GAME_TOKEN>,
+        treasury: TreasuryCap<GLOBAL_CURRENCY>,
+        profits: Balance<SUI>,
     }
 
-    /// The gaming token
-    public struct GAME_TOKEN has drop {}
-
-    /// Game struct
-    public struct Game has key, store {
-        id: UID,
-        player1: address,
-        player2: Option<address>,
-        stake: u64,
-    }
-
-    /// Global games map
-    struct Games has key, store {
-        entries: Table<String, Game>,
-    }
-
-    /// Initialize the token
-    public fun init(ctx: &mut TxContext): GamingToken {
-        let (treasury, _) = coin::create_currency(
-            GAME_TOKEN {},
-            0,
-            b"GAM",
-            b"Gaming Token",
-            b"A token for gaming",
-            None,
+    /// Initialize the module
+    fun init(witness: GLOBAL_CURRENCY, ctx: &mut TxContext) {
+        let (treasury_cap, coin_metadata) = coin::create_currency(
+            witness,
+            9, // Decimals (typical value, adjust as needed)
+            b"GCOIN",
+            b"Global Coin",
+            b"Global currency for the game",
+            option::none(),
             ctx,
         );
 
-        GamingToken { id: object::new(ctx), treasury }
+        transfer::share_object(CurrencyStore {
+            id: object::new(ctx),
+            treasury: treasury_cap,
+            profits: balance::zero(),
+        });
+
+        transfer::public_freeze_object(coin_metadata);
     }
 
-    /// Mint new gaming tokens
-    public fun mint(admin: &GamingToken, amount: u64, ctx: &mut TxContext): Coin<GAME_TOKEN> {
-        coin::mint(&admin.treasury, amount, ctx)
-    }
-
-    /// Burn gaming tokens
-    public fun burn(coin: Coin<GAME_TOKEN>, ctx: &mut TxContext) {
-        coin::burn(coin, ctx)
-    }
-
-    /// Create a new game lobby
-    public fun host_a_game(
-        games: &mut Games,
-        lobby_code: String,
-        player1: address,
-        stake: u64,
-        stake_coin: Coin<GAME_TOKEN>,
-        ctx: &mut TxContext
+    /// Buy GCOIN by paying SUI
+    public entry fun buy_currency(
+        store: &mut CurrencyStore,
+        payment: Coin<SUI>,
+        recipient: address,
+        ctx: &mut TxContext,
     ) {
-        assert!(coin::value(&stake_coin) >= stake, E_INSUFFICIENT_FUNDS);
-        coin::burn(stake_coin, ctx);
-        let game = Game { id: object::new(ctx), player1, player2: None, stake };
-        table::insert(&mut games.entries, lobby_code, game);
+        let payment_amount = coin::value(&payment);
+        
+        // Add the payment to profits
+        coin::put(&mut store.profits, payment);
+        
+        // Mint new GCOIN for the buyer
+        let minted_coin = coin::mint(&mut store.treasury, payment_amount, ctx);
+        
+        // Transfer the minted coin to the recipient
+        transfer::public_transfer(minted_coin, recipient);
     }
 
-    /// Join an existing game lobby
-    public fun join_a_game(
-        games: &mut Games,
-        lobby_code: String,
-        player2: address,
-        stake_coin: Coin<GAME_TOKEN>,
-        ctx: &mut TxContext
+    /// Burn GCOIN by sending it to a burn address
+    public entry fun burn_currency(
+        coin_to_burn: Coin<GLOBAL_CURRENCY>,
+        _ctx: &mut TxContext,
     ) {
-        let game = table::borrow_mut(&mut games.entries, &lobby_code);
-        assert!(game.is_some(), E_GAME_NOT_FOUND);
-        let g = game.unwrap();
-        assert!(g.player2.is_none(), E_GAME_ALREADY_JOINED);
-        assert!(coin::value(&stake_coin) >= g.stake, E_INSUFFICIENT_FUNDS);
-        g.player2 = Some(player2);
-        coin::burn(stake_coin, ctx);
+        // In SUI, the proper way to burn is to destroy the coin
+        coin::destroy_zero(coin_to_burn);
     }
 
-    /// Claim reward and delete game entry
-    public fun claim_reward(
-        games: &mut Games,
-        lobby_code: String,
-        winner_index: u8,
-        admin: &GamingToken,
-        ctx: &mut TxContext
-    ) -> Coin<GAME_TOKEN> {
-        let game = table::borrow_mut(&mut games.entries, &lobby_code);
-        assert!(game.is_some(), E_GAME_NOT_FOUND);
-        let g = game.unwrap();
-        let winner = if winner_index == 1 { g.player1 } else { g.player2.unwrap() };
-        let reward = coin::mint(&admin.treasury, 2 * g.stake, ctx);
-        table::remove(&mut games.entries, &lobby_code);
-        transfer::transfer(reward, winner)
+    /// Get the balance of GCOIN for a coin object
+    public fun balance(coin: &Coin<GLOBAL_CURRENCY>): u64 {
+        coin::value(coin)
     }
-
-    /// Delete a specific game
-    public fun delete_game(games: &mut Games, lobby_code: String) {
-        table::remove(&mut games.entries, &lobby_code);
-    }
-
-    /// Delete all games
-    public fun delete_all_games(games: &mut Games) {
-        games.entries.clear();
+    
+    /// Withdraw profits for the owner (you should add access control)
+    public entry fun withdraw_profits(
+        store: &mut CurrencyStore,
+        amount: u64,
+        recipient: address,
+        ctx: &mut TxContext,
+    ) {
+        // In a real implementation, add access control here
+        let coin_out = coin::take(&mut store.profits, amount, ctx);
+        transfer::public_transfer(coin_out, recipient);
     }
 }
