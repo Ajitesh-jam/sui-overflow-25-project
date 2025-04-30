@@ -41,7 +41,7 @@ module game::global_currency {
     /// Buy GCOIN by paying SUI
     public entry fun buy_currency(
         store: &mut CurrencyStore,
-        payment: Coin<SUI>,
+        amt: u64,
         recipient: address,
         ctx: &mut TxContext,
     ) {
