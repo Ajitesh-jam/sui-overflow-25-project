@@ -7,6 +7,7 @@ import Image from "next/image"
 
 import useUsers from "@/hooks/user.zustand"
 
+import { bcs } from '@mysten/bcs';
 import { AllDefaultWallets, defineStashedWallet, WalletProvider } from "@suiet/wallet-kit"
 import {
   ConnectButton as SuietConnectButton,
@@ -17,8 +18,7 @@ import {
 } from "@suiet/wallet-kit"
 import { Wallet, CreditCard, Shield, Award, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-import useWalletStore from "@/hooks/wallet.zustand"
+import { Transaction } from '@mysten/sui/transactions';
 
 const sampleNft = new Map([
   ["sui:devnet", "0xe146dbd6d33d7227700328a9421c58ed34546f998acdc42a1d05b4818b49faa2::nft::mint"],
@@ -30,7 +30,7 @@ import '../styles/suitWallet.css';
 import styles from "../styles/Home.module.css";
 import '@suiet/wallet-kit/style.css';
 
-
+import React from "react"
 // Custom styled connect button that wraps the Suiet ConnectButton
 const ConnectButton = ({ onConnectError }) => {
   return (
@@ -45,6 +45,292 @@ const ConnectButton = ({ onConnectError }) => {
     </div>
   )
 }
+
+function SendTransaction() {
+  const CHAIN_NAME = 'sui';
+  const SUI_RPC_URL = 'https://fullnode.devnet.sui.io:443';
+  
+  // Recipient address that will receive the SUI
+  const RECIPIENT_ADDRESS = '0x88ff3daeca4f8fb67784ce1789db95a2ae5df910c91a1abbc919de536e382756';
+  
+  // Amount to transfer in MIST (SUI's smallest unit)
+  const TRANSFER_AMOUNT = 10000000; // 0.01 SUI
+
+  const [accounts, setAccounts] = React.useState(null);
+  const [txHash, setTxHash] = React.useState(null);
+
+  const request = async (method, params) => {
+    const res = await fetch(SUI_RPC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: '2.0',
+        method,
+        params: params || [],
+      }),
+    });
+
+    const { result } = await res.json();
+    return result;
+  };
+
+  const suiProvider = {
+    provider: {
+      getReferenceGasPrice: async () => {
+        const result = await request('suix_getReferenceGasPrice', []);
+        return result;
+      },
+      getCoins: async ({ owner, coinType }) => {
+        const result = await request('suix_getCoins', [owner, coinType]);
+        return result;
+      },
+      multiGetObjects: async ({ ids, options }) => {
+        const result = await request('sui_multiGetObjects', [ids, options]);
+        return result;
+      },
+      dryRunTransactionBlock: async ({ transactionBlock }) => {
+        const result = await request('sui_dryRunTransactionBlock', [
+          typeof transactionBlock === 'string'
+            ? transactionBlock
+            : Buffer.from(transactionBlock).toString('base64'),
+        ]);
+        return result;
+      },
+    },
+  };
+
+  // const getSerializedTransaction = async () => {
+  //   try {
+  //     const coins = await request('suix_getCoins', [accounts.address]);
+
+  //     const coinType = '0x2::sui::SUI';
+  //     // const coinType = '0x9229fd48ca1698e2e058b17f344b90b76a96be78ccdca6dbf0de351eb11c8a75::CGSCOIN::CGSCOIN';
+  //     const filtered = coins.data.filter((item) => item.coinType === coinType);
+
+  //     const txb = new Transaction();
+
+  //     // Set the sender address
+  //     txb.setSender(accounts.address);
+
+  //     // Set gas payment coins
+  //     if (filtered.length > 0) {
+  //       txb.setGasPayment(
+  //         filtered.slice(0, 1).map((item) => {
+  //           return {
+  //             objectId: item.coinObjectId,
+  //             version: item.version,
+  //             digest: item.digest,
+  //           };
+  //         })
+  //       );
+  //     }
+      
+
+      
+  //       // Split out the amount to transfer using proper BCS serialization
+  //     const [coin] = txb.splitCoins(
+  //       txb.gas,
+  //       [txb.pure.u64(1000000)]  // Use the convenience method for u64
+  //     );
+
+  //     // Transfer to the specified recipient address using proper BCS serialization
+  //     txb.transferObjects(
+  //       [coin],
+  //       txb.pure.address(RECIPIENT_ADDRESS)  // Use the convenience method for address
+  //     );
+
+  //     txb.setGasPrice(50000);
+  //     txb.setGasBudget(100000000);
+  //     const transactionBlock = await txb.build(suiProvider);
+  //     console.log("Transaction Block: ", transactionBlock);
+  //     return `0x${Buffer.from(transactionBlock).toString('hex')}`;
+      
+  //   } catch (error) {
+  //     console.error("Error creating transaction:", error);
+  //     alert(error.message);
+  //     return null;
+  //   }
+  // };
+
+
+  const getSerializedTransaction = async () => {
+    try {
+      // First, get SUI coins for gas payment
+      const suiCoins = await request('suix_getCoins', [
+        accounts.address,
+        '0x2::sui::SUI'
+      ]);
+      
+      // Then, get CGS_COIN coins for transfer
+      const cgsCoins = await request('suix_getCoins', [
+        accounts.address, 
+        '0x9229fd48ca1698e2e058b17f344b90b76a96be78ccdca6dbf0de351eb11c8a75::CGSCOIN::CGSCOIN'
+      ]);
+      
+      // Filter and verify we have both coin types
+      const suiFiltered = suiCoins.data.filter(coin => 
+        coin.coinType === '0x2::sui::SUI'
+      );
+      
+      const cgsFiltered = cgsCoins.data.filter(coin => 
+        coin.coinType === '0x9229fd48ca1698e2e058b17f344b90b76a96be78ccdca6dbf0de351eb11c8a75::CGSCOIN::CGSCOIN'
+      );
+
+      console.log("SUI Coins: ", suiFiltered);
+      console.log("CGS Coins: ", cgsFiltered);
+      
+      if (suiFiltered.length === 0) {
+        throw new Error("No SUI coins found for gas payment");
+      }
+      
+      if (cgsFiltered.length === 0) {
+        throw new Error("No CGS_COIN coins found for transfer");
+      }
+      
+      // Create transaction block
+      const txb = new Transaction();
+      
+      // Set the sender address
+      txb.setSender(accounts.address);
+      
+      // Set gas payment coins (SUI)
+      txb.setGasPayment([{
+        objectId: suiFiltered[0].coinObjectId,
+        version: suiFiltered[0].version,
+        digest: suiFiltered[0].digest,
+      }]);
+      
+      // Set gas price and budget
+      //txb.setGasPrice(50000);
+      txb.setGasBudget(10000000000);
+      
+      // // PART 1: Transfer SUI
+      // // Split out SUI to transfer
+      // const [suiCoin] = txb.splitCoins(
+      //   txb.gas,
+      //   [txb.pure.u64(1000000)] // 0.001 SUI
+      // );
+      
+      // // Transfer SUI to recipient
+      // txb.transferObjects(
+      //   [suiCoin],
+      //   txb.pure.address(RECIPIENT_ADDRESS)
+      // );
+      
+      // // PART 2: Transfer CGS_COIN
+      // // First, get the CGS coin object
+      const cgsCoinInput = txb.object(cgsFiltered[0].coinObjectId);
+
+      console.log("CGS Coin Input: ", cgsCoinInput);
+      
+      // // Split the CGS coin
+      const [cgsCoin] = txb.splitCoins(
+        cgsCoinInput,
+        [txb.pure.u64(1000000)] // Amount of CGS to transfer (adjust as needed)
+      );
+      console.log("CGS Coin: ", cgsCoin);
+      
+      // // Transfer the CGS coin to recipient
+      txb.transferObjects(
+        [cgsCoin],
+        txb.pure.address(RECIPIENT_ADDRESS)
+      );
+      console.log("Transfer Objects: ", txb);
+      
+      // Build the transaction block
+      const transactionBlock = await txb.build(suiProvider);
+      console.log("Transaction Block: ", transactionBlock);
+      
+      // Return the hex-encoded transaction bytes
+      return `0x${Buffer.from(transactionBlock).toString('hex')}`;
+      
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      alert(error.message);
+      return null;
+    }
+  };
+
+
+  async function handleGetAccount() {
+    try {
+      const accounts = await dapp.request(CHAIN_NAME, {
+        method: 'dapp:accounts',
+      });
+      if (Object.keys(accounts).length === 0) {
+        throw new Error('There are no accounts.');
+      }
+      const chainId = await window.dapp.networks.sui.chain;
+
+      if ((chainId === 'mainnet') || (chainId === 'testnet')) {
+        throw new Error('Please change to SUI devnet in WELLDONE Wallet');
+      }
+      setAccounts(accounts[CHAIN_NAME]);
+    } catch (error) {
+      console.error("Error getting account:", error);
+      alert(error.message);
+    }
+  }
+
+  async function handleSendTransaction() {
+    try {
+      const HEX_STRING_TX_DATA = await getSerializedTransaction();
+      if (!HEX_STRING_TX_DATA) {
+        throw new Error('Failed to create transaction');
+      }
+      
+      const response = await dapp.request(CHAIN_NAME, {
+        method: 'dapp:signAndSendTransaction',
+        params: [`${HEX_STRING_TX_DATA}`],
+      });
+      
+      const txHash = response[0];
+      console.log("Transaction successful! Hash:", txHash);
+      setTxHash(txHash);
+    } catch (error) {
+      console.error("Transaction error:", error);
+      alert(`Error Message: ${error.message}\nError Code: ${error.code}`);
+    }
+  }
+
+  return (
+    <>
+      {accounts ? (
+        <>
+          <Button onClick={handleSendTransaction} type="button">
+            Send SUI to Recipient
+          </Button>
+          <div>
+            <b>Your Account:</b> {accounts.address}
+          </div>
+          <div>
+            <b>Sending to:</b> {RECIPIENT_ADDRESS}
+          </div>
+          <div>
+            <b>Amount:</b> {TRANSFER_AMOUNT / 1000000000} SUI
+          </div>
+        </>
+      ) : (
+        <>
+          <Button onClick={handleGetAccount} type="button">
+            Connect Wallet
+          </Button>
+          <div>You need to connect your wallet first!</div>
+        </>
+      )}
+      {txHash && (
+        <div>
+          <b>Transaction Hash:</b> {txHash}
+          <div>Successfully sent {TRANSFER_AMOUNT / 1000000000} SUI to recipient!</div>
+        </div>
+      )}
+    </>
+  );
+}
+
 
 
 export default function GamePage() {
@@ -144,7 +430,6 @@ export default function GamePage() {
     caption:
       "Fight against zombies and monsters in this thrilling game! #suiBattleField #gaming and see if you beat your friend",
   }
-  
 
   const handleConnectWallet = () => {
 
@@ -154,7 +439,12 @@ export default function GamePage() {
     handleSignMsg();
   }
 
+ 
   const handleCreateRoom = () => {
+    // if(user.name === "Dummy User"){
+    //   alert("Please Login first!")
+    //   return
+    // }
     if (!wallet) {
       alert("Please connect your wallet first!")
       return
@@ -176,6 +466,42 @@ export default function GamePage() {
       isPrivate:isPrivate,
 
     }
+
+    // All SUI Transaction and game logic goes here
+
+    //Step 1 -> transfer stake to owner of the game
+
+    handlePayCoin()
+      .then((result) => {
+        console.log("Transaction result:", result);
+        if (result.success) {
+          console.log("Transaction successful! Digest:", result.digest);
+        }
+      })
+      .catch((error) => {
+        console.error("Transaction failed:", error);
+      });
+
+
+    //Step 2 -> create a new room in the database
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
 
     fetch("/api/createAdjacentNode", {
         method: "POST",
@@ -291,7 +617,7 @@ export default function GamePage() {
           className="max-w-10xl mx-auto py-12 px-4"
         >
           <div className="relative h-[400px] w-full rounded-2xl overflow-hidden mb-10">
-              <Image src={game.image || "/placeholder.svg"} alt={game.name} layout="fill" objectFit="cover" />
+              <Image src={"/placeholder.svg"} alt={game.name} layout="fill" objectFit="cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{game.name}</h1>
@@ -398,6 +724,7 @@ export default function GamePage() {
                                 }}
                                 />
 
+                          
                           {!wallet.connected ? (
                             <motion.p
                               initial={{ opacity: 0 }}
@@ -506,11 +833,14 @@ export default function GamePage() {
                                 )}
                               </div>
                             </motion.div>
-                          )}   
+                          )}
                    </div>
                     
                     
                     </WalletProvider> 
+
+
+                    <SendTransaction></SendTransaction>
                    
                     <div className="flex items-center mb-2">
                       <input

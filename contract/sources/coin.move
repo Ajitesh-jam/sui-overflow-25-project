@@ -17,7 +17,7 @@ module contract::CGSCOIN {
             ctx
         );
         transfer::public_freeze_object(metadata);
-        transfer::public_transfer(treasury_cap, tx_context::sender(ctx))
+        transfer::public_transfer(treasury_cap)
     }
 
     public entry fun mint(
