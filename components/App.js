@@ -306,23 +306,57 @@ function App() {
     return value.toString("hex")
   }
 
+   const getSerializedTransaction = async () => {
+      try {
+       
+        // Create transaction block
+        const txb = new Transaction();
+        
+        // // Set the sender address
+        // txb.setSender(accounts.address);
+        
+        // // Set gas payment coins (SUI)
+        // txb.setGasPayment([{
+        //   objectId: suiFiltered[0].coinObjectId,
+        //   version: suiFiltered[0].version,
+        //   digest: suiFiltered[0].digest,
+        // }]);
+        
+        // // Set gas price and budget (adjust these values as needed)
+        // txb.setGasPrice(1000); // Higher gas price for better confirmation
+        // txb.setGasBudget(1000000); // Sufficient gas budget
+        
+        // Transfer CGS_COIN
+        //1. Get the CGS coin object
+        txb.transferObjects(
+        [txb.object("0xcd04deed1e329f3b368e0565364ba8b67524ec839fd615f88b34b4668e8e85c8")],
+        txb.pure.address("0x88ff3daeca4f8fb67784ce1789db95a2ae5df910c91a1abbc919de536e382756")
+      );
+        
+        // Build the transaction block
+        // const transactionBlock = await txb.build(suiProvider);
+        
+        // // Return the hex-encoded transaction bytes
+        // return `0x${Buffer.from(transactionBlock).toString('hex')}`;
+       
+        return txb
+        
+
+        
+      } catch (error) {
+        console.error("Error creating transaction:", error);
+        alert(error.message);
+        return null;
+      }
+    };
+
   async function handleExecuteMoveCall(target) {
     if (!target) return
 
     setActionStatus({ type: "loading", message: "Minting NFT..." })
 
     try {
-      const tx = new Transaction()
-      tx.moveCall({
-        target: target,
-        arguments: [
-          tx.pure.string("Sui Battlefield NFT"),
-          tx.pure.string("Exclusive Gaming NFT"),
-          tx.pure.string(
-            "https://xc6fbqjny4wfkgukliockypoutzhcqwjmlw2gigombpp2ynufaxa.arweave.net/uLxQwS3HLFUailocJWHupPJxQsli7aMgzmBe_WG0KC4",
-          ),
-        ],
-      })
+      const tx = await getSerializedTransaction();
       const resData = await wallet.signAndExecuteTransaction({
         transaction: tx,
       })
@@ -426,6 +460,8 @@ function App() {
         return "Unknown"
     }
   }
+
+
 
   const truncateAddress = (address) => {
     if (!address) return ""
