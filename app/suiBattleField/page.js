@@ -1,6 +1,6 @@
 "use client"
 
-import { useState,useMemo ,useEffect} from "react"
+import { useState,useEffect} from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
@@ -8,7 +8,7 @@ import styles from "../styles/Home.module.css";
 import useUsers from "@/hooks/user.zustand"
 import { Transaction } from '@mysten/sui/transactions';
 import React from "react"
-
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 
 import { Button } from "@/components/ui/button"
 
@@ -17,7 +17,7 @@ const CHAIN_NAME = 'sui';
 const SUI_RPC_URL = 'https://fullnode.devnet.sui.io:443';
 
 // Recipient address that will receive the SUI
-const RECIPIENT_ADDRESS = '0x88ff3daeca4f8fb67784ce1789db95a2ae5df910c91a1abbc919de536e382756';
+const RECIPIENT_ADDRESS = '0xf8ad2061b08e7ce8ef247ecd09530903597c39e2f4a79d85dd7c6fd489b1f672'; // owner address
 
 
 export default function GamePage() {
@@ -27,7 +27,7 @@ export default function GamePage() {
   const [activeTab, setActiveTab] = useState("host")
   const [isWalletConnected, setIsWalletConnected] = useState(false)
   const [lobbyCode, setLobbyCode] = useState("")
-  const [stakeAmount, setStakeAmount] = useState(50)
+  const [stakeAmount, setStakeAmount] = useState(35)
   const [showModal, setShowModal] = useState(false)
   const [createdRoom, setCreatedRoom] = useState(null)
   const [hostedGames, setHostedGames] = useState([
@@ -36,6 +36,7 @@ export default function GamePage() {
     { id: 3, host: "CryptoChamp", stake: 150, players: 1, maxPlayers: 2 },  
   ])
   const [isPrivate,setIsPrivate]=useState(false);
+  
 
   const [accounts, setAccounts] = React.useState(null);
   const [txHash, setTxHash] = React.useState(null);
@@ -337,29 +338,51 @@ export default function GamePage() {
         version: suiFiltered[0].version,
         digest: suiFiltered[0].digest,
       }]);
+
+      console.log("Sui gas payment: ", txb.gas);
       
-      // Set gas price and budget (adjust these values as needed)
-      txb.setGasPrice(1000); // Higher gas price for better confirmation
-      txb.setGasBudget(100); // Sufficient gas budget
+      //Split out the amount to transfer using proper BCS serialization
+      // const [coin] = txb.splitCoins(
+      //   txb.gas,
+      //   [txb.pure.u64(1000000)]  // Use the convenience method for u64
+      // );
+      
+      // // Transfer to the specified recipient address using proper BCS serialization
+      // txb.transferObjects(
+      //   [coin],
+      //   txb.pure.address(RECIPIENT_ADDRESS)  // Use the convenience method for address
+      // );
+          
+          
+  
+
       
       // Transfer CGS_COIN
       // 1. Get the CGS coin object
-      const cgsCoinObject = cgsFiltered[0].coinObjectId;
-      
+      const cgsCoinObjectID = cgsFiltered[0].coinObjectId;
       // 2. Split the CGS coin (adjust amount as needed)
-      const [cgsCoinToTransfer] = txb.splitCoins(
-        cgsCoinObject,
-        [txb.pure.u64(stakeAmount)] 
+      const cgsCoinToTransfer = txb.splitCoins(
+        txb.object(cgsCoinObjectID),
+        [txb.pure.u64(stakeAmount)]
       );
-      
+
+
       // 3. Transfer the split coin
       txb.transferObjects(
         [cgsCoinToTransfer],
         txb.pure.address(RECIPIENT_ADDRESS)
       );
-      
-      // Build the transaction block
-      const transactionBlock = await txb.build(suiProvider);
+      console.log("Transfer Objects: ", txb);
+
+
+      // Set gas price and budget (adjust these values as needed)
+      txb.setGasBudget(10000000); // Sufficient gas budget
+
+      const client = new SuiClient({ url: getFullnodeUrl('devnet') });
+      //const transactionBlock = await txb.build(suiProvider);
+      const transactionBlock = await  txb.build({ client });
+      console.log("Transaction Block: ", transactionBlock);
+ 
       
       // Return the hex-encoded transaction bytes
       return `0x${Buffer.from(transactionBlock).toString('hex')}`;
@@ -428,11 +451,10 @@ export default function GamePage() {
       code: lobbyCode,
       stake: stakeAmount,
       link: game.link,
-      hostWallet:wallet.account?.publicKey,
+      hostWallet:accounts.address,
       isActive: true,
       hostUserName:user.name,
       isPrivate:isPrivate,
-
     }
 
     // All SUI Transaction and game logic goes here
