@@ -18,21 +18,22 @@ export default function BuyTokens() {
   const handleBuyTokens = () => {
     if (isWalletConnected) {
       setUserTokens((prev) => prev + tokenAmount)
+
+
+
+
+
+
       alert(`Successfully purchased ${tokenAmount} tokens!`)
+
+
     } else {
       alert("Please connect your wallet first!")
     }
   }
 
   return (
-    <WalletProvider
-      defaultWallets={[
-        ...AllDefaultWallets,
-        defineStashedWallet({
-          appName: "Suiet Kit Playground",
-        }),
-      ]}
-    >
+   
       <div className={styles.container}>
         <motion.div
           initial={{ opacity: 0 }}
@@ -224,7 +225,7 @@ export default function BuyTokens() {
           </div>
         </motion.div>
       </div>
-    </WalletProvider>
+
   )
 }
 
