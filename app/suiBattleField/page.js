@@ -25,7 +25,7 @@ export default function GamePage() {
   const gamename="suiBattleField"
   const user = useUsers((state) => state.selectedUser)
   const [activeTab, setActiveTab] = useState("host")
-  const [isWalletConnected, setIsWalletConnected] = useState(false)
+
   const [lobbyCode, setLobbyCode] = useState("")
   const [stakeAmount, setStakeAmount] = useState(35)
   const [showModal, setShowModal] = useState(false)
@@ -58,7 +58,7 @@ export default function GamePage() {
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
-          console.log("Gamess ", response)
+          console.log("Feetched Games : ", response)
 
           return response.json(); // Parse JSON correctly
         })
@@ -297,30 +297,19 @@ export default function GamePage() {
   
   const getSerializedTransaction = async () => {
     try {
-      // First, get SUI coins for gas payment
-      const suiCoins = await request('suix_getCoins', [
-        accounts.address,
-        '0x2::sui::SUI'
-      ]);
-      
+
+      //transfer CGS COIn  of stake amount 
+     
       // Then, get CGS_COIN coins for transfer
       const cgsCoins = await request('suix_getCoins', [
         accounts.address, 
         '0x9229fd48ca1698e2e058b17f344b90b76a96be78ccdca6dbf0de351eb11c8a75::CGSCOIN::CGSCOIN'
       ]);
       
-      // Filter and verify we have both coin types
-      const suiFiltered = suiCoins.data.filter(coin => 
-        coin.coinType === '0x2::sui::SUI'
-      );
-      
+     
       const cgsFiltered = cgsCoins.data.filter(coin => 
         coin.coinType === '0x9229fd48ca1698e2e058b17f344b90b76a96be78ccdca6dbf0de351eb11c8a75::CGSCOIN::CGSCOIN'
       );
-  
-      if (suiFiltered.length === 0) {
-        throw new Error("No SUI coins found for gas payment");
-      }
       
       if (cgsFiltered.length === 0) {
         throw new Error("No CGS_COIN coins found for transfer");
@@ -331,30 +320,9 @@ export default function GamePage() {
       
       // Set the sender address
       txb.setSender(accounts.address);
-      
-      // Set gas payment coins (SUI)
-      txb.setGasPayment([{
-        objectId: suiFiltered[0].coinObjectId,
-        version: suiFiltered[0].version,
-        digest: suiFiltered[0].digest,
-      }]);
 
       console.log("Sui gas payment: ", txb.gas);
       
-      //Split out the amount to transfer using proper BCS serialization
-      // const [coin] = txb.splitCoins(
-      //   txb.gas,
-      //   [txb.pure.u64(1000000)]  // Use the convenience method for u64
-      // );
-      
-      // // Transfer to the specified recipient address using proper BCS serialization
-      // txb.transferObjects(
-      //   [coin],
-      //   txb.pure.address(RECIPIENT_ADDRESS)  // Use the convenience method for address
-      // );
-          
-          
-  
 
       
       // Transfer CGS_COIN
@@ -372,10 +340,6 @@ export default function GamePage() {
         [cgsCoinToTransfer],
         txb.pure.address(RECIPIENT_ADDRESS)
       );
-      console.log("Transfer Objects: ", txb);
-
-
-      // Set gas price and budget (adjust these values as needed)
       txb.setGasBudget(10000000); // Sufficient gas budget
 
       const client = new SuiClient({ url: getFullnodeUrl('devnet') });
@@ -409,9 +373,11 @@ export default function GamePage() {
       const txHash = response[0];
       console.log("Transaction successful! Hash:", txHash);
       setTxHash(txHash);
+      return true;
     } catch (error) {
-      console.error("Transaction error:", error);
+      //console.error("Transaction error:", error);
       alert(`Error Message: ${error.message}\nError Code: ${error.code}`);
+      return false;
     }
   }
   async function handleGetAccount() {
@@ -434,11 +400,16 @@ export default function GamePage() {
     }
   }
  
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     // if(user.name === "Dummy User"){
     //   alert("Please Login first!")
     //   return
     // }
+    if(accounts === null){
+      alert("Please connect your wallet first!")
+      return
+    }
+   
    
 
     if (!lobbyCode || stakeAmount <= 0) {
@@ -460,17 +431,7 @@ export default function GamePage() {
     // All SUI Transaction and game logic goes here
 
     //Step 1 -> transfer stake to owner of the game
-
-    handlePayCoin()
-      .then((result) => {
-        console.log("Transaction result:", result);
-        if (result.success) {
-          console.log("Transaction successful! Digest:", result.digest);
-        }
-      })
-      .catch((error) => {
-        console.error("Transaction failed:", error);
-      });
+    await handleSendTransaction();
 
 
     //Step 2 -> create a new room in the database   
@@ -492,6 +453,7 @@ export default function GamePage() {
             isActive: true,
             players: 1,
             hostUserName:user.name,
+            playerWallet: accounts.address,
             isPrivate:isPrivate,
           },
         }),
@@ -509,45 +471,60 @@ export default function GamePage() {
     setShowModal(true)
   }
 
-  const handleJoinGame = (hostedGame) => {
-    if (!isWalletConnected) {
-      alert("Please connect your wallet first!")
-      return
-    }
+  const handleJoinGame = async (hostedGame) => {
+    try{
 
-    setCreatedRoom({
-      id: hostedGame.id,
-      code: hostedGame.n.properties.code,
-      stake: hostedGame.n.properties.stake.low,
-      link: game.link,
-    })
-
-    fetch("/api/updateNode", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        label: "Game",
-        where: {code: hostedGame.n.properties.code},
-        updates: {
-          isActive: false,
-          players: hostedGame.n.properties.players + 1,
-          playerWallet: wallet.account?.publicKey,
-          playerUserName: user.name,
-        },
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json(); // Parse JSON correctly
+      if(accounts === null){
+        alert("Please connect your wallet first!")
+        return
+      }
+  
+  
+      setCreatedRoom({
+        id: hostedGame.id,
+        code: hostedGame.n.properties.code,
+        stake: hostedGame.n.properties.stake.low,
+        link: game.link,
       })
-      .then((data) => console.log(data))
-      .catch((error) => console.error("Error:", error));
+  
+      setStakeAmount(hostedGame.n.properties.stake.low);
+  
+      //give stake amount to the game owner
+      const status= await handleSendTransaction();
 
-    setShowModal(true)
+      if(!status){
+        return
+      }
+  
+      fetch("/api/updateNode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          label: "Game",
+          where: {code: hostedGame.n.properties.code},
+          updates: {
+            isActive: false,
+            JoinPlayerWallet: accounts.address,
+            JoinPlayerUserName: user.name,
+          },
+        }),
+      }).then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          setShowModal(true)
+          return response.json(); // Parse JSON correctly
+        })
+        .then((data) => console.log(data))
+        .catch((error) => console.error("Error:", error));
+    }
+    catch(error){
+      console.error("Error in joining game: ", error)
+      alert("Error in joining game: ");
+      return;
+    }
 
   }
 
@@ -589,37 +566,7 @@ export default function GamePage() {
               </button>
             </div>
 
-            <>
-              {accounts ? (
-                <>
-                  <Button onClick={handleSendTransaction} type="button">
-                    Send SUI to Recipient
-                  </Button>
-                  <div>
-                    <b>Your Account:</b> {accounts.address}
-                  </div>
-                  <div>
-                    <b>Sending to:</b> {RECIPIENT_ADDRESS}
-                  </div>
-                  <div>
-                    <b>Amount:</b> {stakeAmount } CGS_COIN
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Button onClick={handleGetAccount} type="button">
-                    Connect Wallet
-                  </Button>
-                  <div>You need to connect your wallet first!</div>
-                </>
-              )}
-              {txHash && (
-                <div>
-                  <b>Transaction Hash:</b> {txHash}
-                  <div>Successfully sent {stakeAmount / 1000000000} SUI to recipient!</div>
-                </div>
-              )}
-            </>
+            
 
             <AnimatePresence mode="wait">
               {activeTab === "host" ? (
@@ -655,15 +602,43 @@ export default function GamePage() {
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 mb-2">Stake Amount (Tokens)</label>
+                      <label className="block text-gray-300 mb-2">Stake Amount / 100 CGS_COIN </label>
                       <input
                         type="number"
-                        min="10"
+                        min="0.0001"
                         value={stakeAmount}
                         onChange={(e) => setStakeAmount(Number.parseInt(e.target.value) || 0)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
+                      <br></br>
+
+                      <>
+              {accounts ? (
+                <>
+                <div>
+                  <b>Your Account:</b> {accounts.address}
+                </div>
+                
+                <div>
+                  <b>Amount:</b> {stakeAmount/100 } CGS_COIN
+                </div>
+                </>
+              ) : (
+                <>
+                  <Button onClick={handleGetAccount} type="button">
+                    Connect Wallet
+                  </Button>
+                  <div>You need to connect your wallet first!</div>
+                </>
+              )}
+              {txHash && (
+                <div>
+                  <b>Transaction Hash:</b> {txHash}
+                </div>
+              )}
+            </>
+                         
                     <div className="flex items-center mb-2">
                       <input
                         type="checkbox"
@@ -671,10 +646,11 @@ export default function GamePage() {
                         checked={isPrivate}
                         onChange={(e) => setIsPrivate(e.target.checked)}
                         className="mr-2"
-                      />
+                        />
                       <label htmlFor="privateGame" className="text-gray-400">
                         Private Game
                       </label>
+                     
                     </div>
 
                     <motion.button
@@ -703,6 +679,25 @@ export default function GamePage() {
                     <p className="text-gray-300 mb-2">Stake the required amount to play. You will get the room code.</p>
                     <p className="text-gray-300">Go to the game link and join the lobby using the room code.</p>
                   </div>
+
+                  {accounts ? (
+                <>
+                <div>
+                  <b>Your Account:</b> {accounts.address}
+                </div>
+                
+                <div>
+                  <b>Amount:</b> {stakeAmount/100 } CGS_COIN
+                </div>
+                </>
+              ) : (
+                <>
+                  <Button onClick={handleGetAccount} type="button">
+                    Connect Wallet
+                  </Button>
+                  <div>You need to connect your wallet first!</div>
+                </>
+              )}
                   
 
                   <div className="space-y-4">
@@ -721,6 +716,7 @@ export default function GamePage() {
                           </div>
                           <div className="flex space-x-4 text-sm text-gray-400">
                             <span>Stake: {hostedGame.n.properties.stake.low} Tokens</span>
+                            <span>code: {hostedGame.n.properties.code} Tokens</span>
                             <span>
                               Players: 1
                             </span>
