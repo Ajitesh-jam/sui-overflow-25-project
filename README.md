@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## All the dpeloyements information can be found on contract/deployement ( Deployement in devnet ) 
 
-## Getting Started
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## To Run
+
+``` npm i```
+and you need to have Graph database ; NEO4J in this whose creaditionals should be .env 
+-> goto neo4j Aura Db and sign up and create a aura database and connect it by giving cred in .env as
+
+```
+URI="bolt://localhost:7687"
+USERNAME = "neo4j"
+PASSWORD = "suioverflow"
+
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+download the game seperately by downloading public/multi.zip
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+then the game will open via unity Deeplink
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+## Challeneges
+1. Learing the blockchain and doubt in some area:
+Resolved with the help from Mr. DANIEL LEAVITT (via telegram)
+2. Short amount of time
+3. Lack of knowledge: Since we are just university student it did take too much time to learn but it was very fun and a great experience
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Learning from :
+https://github.com/Ajitesh-jam/sui-overflow-25
+sataoshi filp repo
+well code documentations
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+One request : Maybe the explanation video is not that good, if so you can always mail us to pitch the idea in person 
 
-## Deploy on Vercel
+Some Why's
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Why wellcode wallet :
+    We have tried SUI official wallet also but coming from Eth background we find wellcode more eaiser since it gives us access to Remix as well
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+Why Custom Coin:
+    Answered in video
+
+Why Graph Database:
+    Inspired from real social media sites, we have used graph database which gives very fast releated data then any traditional databases    
+
+
+At last it really took a lot of efforts and lots of nights. Hope you will atleast give us chance to present ourself
+
+Thankyou
+

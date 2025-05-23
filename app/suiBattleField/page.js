@@ -788,7 +788,7 @@ export default function GamePage() {
 
                 <div className="space-y-4">
                   <a
-                    href={createdRoom.link}
+                    href="unitydl://mylink?name=Alice&player_id=12345&wallet_address=0xABC123DEF456&tokens=500&room_code=NEWROOM&skin_ids=1,3,5"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-lg text-center text-lg shadow-glow"
