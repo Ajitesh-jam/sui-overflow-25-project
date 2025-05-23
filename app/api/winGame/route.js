@@ -7,7 +7,7 @@ import { Transaction } from '@mysten/sui/transactions';
 async function handleTransfer(recipient, amount) {
 
   try{
-    const PRIVATE_KEY = process.env.PVT_KEY ; // Replace with your actual private key
+    const PRIVATE_KEY = "0x84648d893d66c2835cbc483a0c0f544308f5d0429ebd0c1fd07129f97ff7d091"; // Replace with your actual private key
     if (!PRIVATE_KEY) {
       throw new Error("Private key is not set in environment variables.");
     }
