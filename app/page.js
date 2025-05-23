@@ -11,7 +11,7 @@
 //     id: 1,
 //     user: {
 //       name: "Jessica Parker",
-//       avatar: "/placeholder.svg?height=40&width=40",
+//       avatar: "/placeholder.png?height=40&width=40",
 //     },
 //     image: "/ema.png",
 //     likes: 234,
@@ -27,7 +27,7 @@
 //     id: 2,
 //     user: {
 //       name: "Alex Johnson",
-//       avatar: "/placeholder.svg?height=40&width=40",
+//       avatar: "/placeholder.png?height=40&width=40",
 //     },
 //     image: "/ema.png",
 //     likes: 156,
@@ -43,7 +43,7 @@
 //     id: 3,
 //     user: {
 //       name: "Emma Wilson",
-//       avatar: "/placeholder.svg?height=40&width=40",
+//       avatar: "/placeholder.png?height=40&width=40",
 //     },
 //     image: "/ema.png",
 //     likes: 342,
@@ -59,9 +59,9 @@
 //     id: 4,
 //     user: {
 //       name: "David Brown",
-//       avatar: "/placeholder.svg?height=40&width=40",
+//       avatar: "/placeholder.png?height=40&width=40",
 //     },
-//     image: "/placeholder.svg?height=600&width=800",
+//     image: "/placeholder.png?height=600&width=800",
 //     likes: 189,
 //     caption:
 //       "Just got my new camera! Can't wait to capture some amazing shots 📸 #photography #newgear #excited",

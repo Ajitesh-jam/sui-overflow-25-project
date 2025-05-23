@@ -199,7 +199,7 @@ export default function CreatePost() {
               ) : (
                 <div className="relative w-full h-full">
                   <Image
-                    src={imageUrl || "/placeholder.svg"}
+                    src={imageUrl || "/placeholder.png"}
                     alt="Post preview"
                     fill
                     className="object-contain"
@@ -217,7 +217,7 @@ export default function CreatePost() {
           {/* User info */}
           <div className="p-4 flex items-center">
             <Avatar className="h-8 w-8 mr-2">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" />
+              <AvatarImage src="/placeholder.png?height=32&width=32" />
               <AvatarFallback>UN</AvatarFallback>
             </Avatar>
             <span className="font-semibold">saraswagh</span>

@@ -53,7 +53,7 @@
 //     >
 //       <div className="p-4 flex items-center">
 //         <Image
-//           src={game.image || "/placeholder.svg"}
+//           src={game.image || "/placeholder.png"}
 //           alt={game.name}
 //           width={40}
 //           height={40}
@@ -71,7 +71,7 @@
 
 //       <div className="relative aspect-square">
 //         <Image
-//           src={game.image || "/placeholder.svg"}
+//           src={game.image || "/placeholder.png"}
 //           alt={game.name}
 //           fill
 //           style={{ objectFit: "cover" }}
@@ -180,7 +180,7 @@ export default function GameCard({ game, index }) {
     >
       <div className="relative h-48 w-full">
         <Image
-          src={game.image || "/placeholder.svg"}
+          src={game.image || "/placeholder.png"}
           alt={game.name}
           layout="fill"
           objectFit="cover"

@@ -62,7 +62,7 @@ export default function GameGrid({ active }) {
     // Mock Games data
     const mockGames = Array.from({ length: 6 }, (_, i) => ({
       id: i + 1,
-      image: `/placeholder.svg?height=600&width=400&text=Game+${i + 1}`,
+      image: `/placeholder.png?height=600&width=400&text=Game+${i + 1}`,
       likes: Math.floor(Math.random() * 5000),
       comments: Math.floor(Math.random() * 500),
       views: Math.floor(Math.random() * 50000),

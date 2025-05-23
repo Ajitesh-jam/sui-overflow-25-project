@@ -37,7 +37,7 @@ export default function GameCarousel({ games }) {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent z-10"></div>
           <Image
-            src={games[currentIndex].image || "/placeholder.svg"}
+            src={games[currentIndex].image || "/placeholder.png"}
             alt={games[currentIndex].name}
             layout="fill"
             objectFit="cover"

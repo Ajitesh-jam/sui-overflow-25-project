@@ -122,7 +122,7 @@ export default function FriendHeader({ Friend, activeUserId }) {
       {/* Profile Picture */}
       <div className="relative h-24 w-24 md:h-36 md:w-36 rounded-full overflow-hidden">
         <img
-          src={Friend.imageUrl || "/placeholder.svg"}
+          src={Friend.imageUrl || "/placeholder.png"}
           alt={Friend.name}
           className="object-cover"
         />

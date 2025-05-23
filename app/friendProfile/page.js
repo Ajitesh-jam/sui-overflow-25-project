@@ -180,11 +180,11 @@ export default function FriendProfilePage({ activeUserId }) {
 
   // ✅ Mock stories data
   const stories = [
-    { id: 1, image: "/placeholder.svg?height=80&width=80", title: "Travel" },
-    { id: 2, image: "/placeholder.svg?height=80&width=80", title: "Food" },
-    { id: 3, image: "/placeholder.svg?height=80&width=80", title: "Pets" },
-    { id: 4, image: "/placeholder.svg?height=80&width=80", title: "Nature" },
-    { id: 5, image: "/placeholder.svg?height=80&width=80", title: "Music" },
+    { id: 1, image: "/placeholder.png?height=80&width=80", title: "Travel" },
+    { id: 2, image: "/placeholder.png?height=80&width=80", title: "Food" },
+    { id: 3, image: "/placeholder.png?height=80&width=80", title: "Pets" },
+    { id: 4, image: "/placeholder.png?height=80&width=80", title: "Nature" },
+    { id: 5, image: "/placeholder.png?height=80&width=80", title: "Music" },
   ];
 
   return (

@@ -53,7 +53,7 @@ export default function UserSearchResults({ results, isLoading, searchTerm, onUs
             onMouseLeave={() => setHoveredUser(null)}
           >
             <div className="relative h-12 w-12 rounded-full overflow-hidden mr-4">
-              <img src={user.profileImage || "/placeholder.svg"} alt={user.username}
+              <img src={user.profileImage || "/placeholder.png"} alt={user.username}
                 //fill
                 className="object-cover" />
             </div>

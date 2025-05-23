@@ -90,7 +90,7 @@ export default function PostModal({ open, onClose, post, onDelete }) {
             )}
             {/* ✅ Post Image Maximized */}
             <img
-              src={post.m?.properties?.imageUrl || "/placeholder.svg"}
+              src={post.m?.properties?.imageUrl || "/placeholder.png"}
               alt={`Post ${post.id}`}
               className="w-full h-[90vh] object-contain bg-black"
             />

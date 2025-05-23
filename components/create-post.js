@@ -235,7 +235,7 @@ export default function CreatePost() {
             ) : (
               <div className="relative rounded-md overflow-hidden">
                 <img
-                  src={previewUrl || "/placeholder.svg"}
+                  src={previewUrl || "/placeholder.png"}
                   alt="Post preview"
                   className="w-full h-48 object-cover"
                 />

@@ -7,19 +7,19 @@ import { ThumbsUp, Camera, Heart } from "lucide-react"
 const slides = [
   {
     id: 1,
-    image: "/placeholder.svg?height=800&width=1200",
+    image: "/placeholder.png?height=800&width=1200",
     title: "Share Your Moments",
     description: "Connect with friends and share your favorite memories",
   },
   {
     id: 2,
-    image: "/placeholder.svg?height=800&width=1200",
+    image: "/placeholder.png?height=800&width=1200",
     title: "Discover Amazing Content",
     description: "Explore trending posts from creators around the world",
   },
   {
     id: 3,
-    image: "/placeholder.svg?height=800&width=1200",
+    image: "/placeholder.png?height=800&width=1200",
     title: "Join Our Community",
     description: "Be part of a growing network of creative individuals",
   },
@@ -47,7 +47,7 @@ export default function HeroSlider() {
           className="absolute inset-0"
         >
           <Image
-            src={slides[currentSlide].image || "/placeholder.svg"}
+            src={slides[currentSlide].image || "/placeholder.png"}
             alt={slides[currentSlide].title}
             fill
             style={{ objectFit: "cover" }}

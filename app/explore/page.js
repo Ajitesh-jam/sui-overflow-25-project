@@ -20,7 +20,7 @@ export default function Explore() {
       // Generate 20 random posts
       const generatedPosts = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
-        image: `/placeholder.svg?height=${
+        image: `/placeholder.png?height=${
           300 + Math.floor(Math.random() * 200)
         }&width=${300 + Math.floor(Math.random() * 200)}`,
         likes: Math.floor(Math.random() * 1000),
@@ -88,7 +88,7 @@ export default function Explore() {
               whileHover={{ scale: 1.03 }}
             >
               <Image
-                src={post.image || "/placeholder.svg"}
+                src={post.image || "/placeholder.png"}
                 alt={`Post ${post.id}`}
                 className="w-full h-full object-cover"
               />

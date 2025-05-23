@@ -538,7 +538,7 @@ export default function GamePage() {
           className="max-w-10xl mx-auto py-12 px-4"
         >
           <div className="relative h-[400px] w-full rounded-2xl overflow-hidden mb-10">
-              <Image src={"/placeholder.svg"} alt={game.name} layout="fill" objectFit="cover" />
+              <Image src={"/placeholder.png"} alt={game.name} layout="fill" objectFit="cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{game.name}</h1>

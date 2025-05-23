@@ -37,7 +37,7 @@ export default function PostGrid({ active, posts }) {
             
             {/* ✅ Post Image */}
             <img
-              src={post.m?.properties?.imageUrl || "/placeholder.svg"}
+              src={post.m?.properties?.imageUrl || "/placeholder.png"}
               alt={`Post ${post.id}`}
               className="object-cover w-full h-full"
             />

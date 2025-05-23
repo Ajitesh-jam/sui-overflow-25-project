@@ -8,7 +8,7 @@ export default function StoryCircles({ stories }) {
         <Link key={story.id} href="#" className="flex flex-col items-center gap-1">
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-full ring-2 ring-primary p-0.5 flex items-center justify-center">
             <div className="relative w-full h-full rounded-full overflow-hidden">
-              <Image src={story.image || "/placeholder.svg"} alt={story.title} fill className="object-cover" />
+              <Image src={story.image || "/placeholder.png"} alt={story.title} fill className="object-cover" />
             </div>
           </div>
           <span className="text-xs">{story.title}</span>

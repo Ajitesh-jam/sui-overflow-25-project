@@ -64,7 +64,7 @@ const UserItem = ({ user, index }) => {
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center text-white font-bold">
           {user.avatar ? (
             <img
-              src={user.avatar || "/placeholder.svg"}
+              src={user.avatar || "/placeholder.png"}
               alt={user.name}
               className="w-full h-full rounded-full object-cover"
             />

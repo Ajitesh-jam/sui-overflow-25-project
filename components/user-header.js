@@ -25,7 +25,7 @@ export default function UserHeader({ user }) {
     <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
       <div className="relative h-24 w-24 md:h-36 md:w-36 rounded-full overflow-hidden">
         <img
-          src={user.imageUrl || "/placeholder.svg"}
+          src={user.imageUrl || "/placeholder.png"}
           alt={user.name}
           className="object-cover"
         />
